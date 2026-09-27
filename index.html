@@ -117,7 +117,9 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .item{
   background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;
   padding:12px;display:flex;flex-direction:column;gap:4px;
+  transition:transform .1s ease, filter .1s ease;
 }
+.item.item-tap:active{transform:scale(0.97);filter:brightness(0.9);}
 .item .top{display:flex;justify-content:space-between;align-items:center;}
 .item .meta{font-size:12px;color:var(--text-dim);}
 .pill{
@@ -135,8 +137,10 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .day-chip{
   aspect-ratio:1;border-radius:10px;background:var(--bg-elev);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);
+  transition:transform .1s ease, filter .1s ease;
 }
 .day-chip.done{background:var(--accent);color:#04140f;border-color:var(--accent);}
+.day-chip:active{transform:scale(0.88);filter:brightness(0.9);}
 .empty-msg{color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0;}
 
 #pin-screen{
@@ -192,15 +196,18 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
   aspect-ratio:1;border-radius:12px;background:var(--bg-elev);border:1px solid transparent;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   font-size:13px;font-weight:600;position:relative;
+  transition:transform .1s ease, filter .1s ease;
 }
 .cal-day.today{border-color:var(--accent);color:var(--accent);}
 .cal-day.selected{background:var(--accent);color:#04140f;}
 .cal-day.empty{background:transparent;}
+.cal-day:not(.empty):active{transform:scale(0.86);filter:brightness(0.85);}
 .cal-day .dots{position:absolute;bottom:5px;display:flex;gap:2px;}
 .cal-day .dot{width:5px;height:5px;border-radius:50%;}
 .color-row{display:flex;gap:10px;flex-wrap:wrap;}
-.color-swatch{width:32px;height:32px;border-radius:50%;border:2px solid transparent;}
+.color-swatch{width:32px;height:32px;border-radius:50%;border:2px solid transparent;transition:transform .1s ease;}
 .color-swatch.selected{border-color:#fff;}
+.color-swatch:active{transform:scale(0.82);}
 .event-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 </style>
 </head>
@@ -624,7 +631,7 @@ function openDayModal(dateStr){
       list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin eventos este día.")]));
     } else {
       dayEvents.forEach(ev => {
-        list.appendChild(el("div",{class:"item", onclick:() => openEventModal(dateStr, ev, renderDay)},[
+        list.appendChild(el("div",{class:"item item-tap", onclick:() => openEventModal(dateStr, ev, renderDay)},[
           el("div",{class:"top"},[
             el("div",{style:"display:flex;align-items:center;gap:8px;"},[
               el("span",{class:"event-color-dot", style:"background:"+colorHex(ev.color)}),
