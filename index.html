@@ -5,22 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#121213">
+<meta name="theme-color" content="#151316">
 <title>Vida</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <style>
 :root{
-  --bg:#121213;
-  --bg-elev:#1a1a1c;
-  --bg-card:#1f1f22;
-  --border:#2c2c30;
-  --text:#f2f2f3;
-  --text-dim:#98989e;
-  --accent:#5ee6c8;
-  --accent-2:#5ee6c8;
-  --danger:#ff6b6b;
-  --warn:#f5c542;
+  --bg:#151316;
+  --bg-elev:#1d1a1f;
+  --bg-card:#242026;
+  --border:#332e35;
+  --text:#f6f2f0;
+  --text-dim:#a39aa0;
+  --accent:#ff9166;
+  --accent-2:#ffc266;
+  --danger:#ff5d73;
+  --warn:#ffcf5c;
   --radius:18px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -63,17 +63,18 @@ body{
 .avatar-btn:active{transform:scale(0.88);}
 .avatar-btn img{width:100%;height:100%;object-fit:cover;display:block;}
 
+#view-home{flex:1;display:flex;flex-direction:column;min-height:0;}
 .grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:18px 8px;
-  padding:6px 18px 30px;
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:4px 8px;
+  padding:6px 18px 24px;flex:1;
 }
 .tile{
   background:none;border:none;padding:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   position:relative;
 }
 .tile .icon-circle{
-  width:62px;height:62px;border-radius:50%;
+  width:min(84px,22vw);height:min(84px,22vw);border-radius:50%;
   background:linear-gradient(160deg,var(--bg-card),var(--bg-elev));
   border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;
@@ -82,14 +83,14 @@ body{
 }
 .tile .icon-circle::after{
   content:"";position:absolute;inset:0;
-  background:radial-gradient(60px 50px at var(--mx,50%) var(--my,0%), rgba(255,255,255,0.1), transparent 70%);
+  background:radial-gradient(60px 50px at var(--mx,50%) var(--my,0%), rgba(255,255,255,0.14), transparent 70%);
   opacity:0;transition:opacity .2s ease;pointer-events:none;
 }
 .tile:active .icon-circle{transform:scale(0.86);box-shadow:0 0 0 2px var(--tile-accent,var(--accent));}
 .tile:active .icon-circle::after{opacity:1;}
-.tile .icon{font-size:26px;line-height:1;}
-.tile .icon-img{width:30px;height:30px;object-fit:contain;}
-.tile .label{font-weight:600;font-size:12px;text-align:center;line-height:1.2;color:var(--text);}
+.tile .icon{font-size:32px;line-height:1;}
+.tile .icon-img{width:38px;height:38px;object-fit:contain;}
+.tile .label{font-weight:600;font-size:13px;text-align:center;line-height:1.2;color:var(--text);}
 
 .section{padding:16px 20px 40px;flex:1;display:flex;flex-direction:column;gap:16px;}
 .card{
@@ -194,8 +195,8 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .cal-nav button:active{transform:scale(0.92);}
 .cal-month{font-weight:700;font-size:16px;text-transform:capitalize;}
 .cal-month-btn{
-  background:none;border:none;color:var(--text);font-weight:700;font-size:16px;text-transform:capitalize;
-  display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:10px;
+  background:none;border:none;color:var(--text);font-weight:700;font-size:16px;
+  display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:10px;white-space:nowrap;
   transition:transform .1s ease, opacity .1s ease;
 }
 .cal-month-btn .cal-month-caret{font-size:11px;color:var(--text-dim);}
@@ -266,6 +267,22 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .idea-card .idea-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
 .idea-card .idea-title{font-size:12px;font-weight:700;line-height:1.2;}
 .idea-card .idea-cat{font-size:10px;color:var(--text-dim);}
+
+.collapse-header{
+  width:100%;background:none;border:none;color:var(--text-dim);
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;
+  padding:0;transition:opacity .1s ease;
+}
+.collapse-header:active{opacity:0.6;}
+.collapse-caret{font-size:11px;color:var(--text-dim);}
+.collapse-body{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+.diario-entry-head{
+  width:100%;background:none;border:none;color:var(--text);
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;font-weight:700;padding:0;transition:opacity .1s ease;
+}
+.diario-entry-head:active{opacity:0.6;}
 </style>
 </head>
 <body>
@@ -525,6 +542,38 @@ function el(tag, attrs, children){
   return e;
 }
 
+const MONTH_NAMES_FULL = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function collapsibleCard(title, openMap, key, renderBodyFn, sectionId, defaultOpen){
+  if(openMap[key] === undefined) openMap[key] = !!defaultOpen;
+  const isOpen = openMap[key];
+  const card = el("div",{class:"card"});
+  card.appendChild(el("button",{class:"collapse-header", onclick:() => { openMap[key] = !isOpen; openSection(sectionId); }},[
+    el("span",{},[document.createTextNode(title)]),
+    el("span",{class:"collapse-caret"},[document.createTextNode(isOpen ? "▾" : "▸")])
+  ]));
+  if(isOpen){
+    const body = el("div",{class:"collapse-body"});
+    renderBodyFn(body);
+    card.appendChild(body);
+  }
+  return card;
+}
+
+function percentRing(pct, size, color){
+  const p = Math.max(0, Math.min(100, Math.round(pct)));
+  return el("div",{style:`width:${size}px;height:${size}px;border-radius:50%;background:conic-gradient(${color} 0% ${p}%, var(--bg-elev) ${p}% 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;`},[
+    el("div",{style:`width:${size-14}px;height:${size-14}px;border-radius:50%;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:${size<70?11:13}px;font-weight:700;`},[document.createTextNode(p+"%")])
+  ]);
+}
+
+function deltaPill(diff, unitLabel){
+  if(diff === 0) return el("span",{class:"pill"},[document.createTextNode("= igual")]);
+  const up = diff > 0;
+  return el("span",{class:"pill " + (up ? "" : "warn")},[document.createTextNode((up?"▲ +":"▼ ") + Math.abs(diff) + (unitLabel ? " " + unitLabel : ""))]);
+}
+
 const homeGrid = document.getElementById("home-grid");
 const viewHome = document.getElementById("view-home");
 const viewSection = document.getElementById("view-section");
@@ -586,7 +635,9 @@ function openSection(id){
 }
 function goHome(){
   if(typeof deporteSubView !== "undefined") deporteSubView = null;
+  if(typeof deporteWeekOffset !== "undefined") deporteWeekOffset = 0;
   if(typeof focusSubView !== "undefined") focusSubView = null;
+  if(typeof suenoEditingDate !== "undefined") suenoEditingDate = null;
   topbarTitle.classList.remove("hidden");
   avatarBtn.classList.remove("hidden");
   viewSection.classList.add("hidden");
@@ -621,6 +672,8 @@ function colorHex(id){
 
 let calendarViewDate = new Date();
 let calendarSelectedDate = todayISO();
+let calLastTapTime = 0;
+let calLastTapDay = null;
 
 function pad2(n){ return String(n).padStart(2,"0"); }
 function dateKey(y,m,d){ return y + "-" + pad2(m+1) + "-" + pad2(d); }
@@ -643,7 +696,7 @@ function renderCalendario(root){
   calCard.appendChild(el("div",{class:"cal-nav"},[
     el("button",{onclick:() => { calendarViewDate = new Date(year, month-1, 1); openSection("calendario"); }},[document.createTextNode("‹")]),
     el("button",{class:"cal-month-btn", onclick:() => openMonthYearModal()},[
-      document.createTextNode(calendarViewDate.toLocaleDateString("es-ES",{month:"long",year:"numeric"})),
+      document.createTextNode(capitalize(MONTH_NAMES_FULL[month]) + " " + year),
       el("span",{class:"cal-month-caret"},[document.createTextNode("▾")])
     ]),
     el("button",{onclick:() => { calendarViewDate = new Date(year, month+1, 1); openSection("calendario"); }},[document.createTextNode("›")])
@@ -658,7 +711,17 @@ function renderCalendario(root){
     const classes = ["cal-day"];
     if(ds === todayStr) classes.push("today");
     if(ds === calendarSelectedDate) classes.push("selected");
-    const cell = el("div",{class:classes.join(" "), onclick:() => { calendarSelectedDate = ds; openDayModal(ds); }},[
+    const cell = el("div",{class:classes.join(" "), onclick:() => {
+      const now = Date.now();
+      if(calLastTapDay === ds && now - calLastTapTime < 400){
+        calLastTapTime = 0; calLastTapDay = null;
+        openDayModal(ds);
+      } else {
+        calLastTapTime = now; calLastTapDay = ds;
+        calendarSelectedDate = ds;
+        openSection("calendario");
+      }
+    }},[
       document.createTextNode(String(d))
     ]);
     if(dayEvents.length){
@@ -672,7 +735,33 @@ function renderCalendario(root){
   root.appendChild(calCard);
 
   root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;text-align:center;"},[
-    document.createTextNode("Toca un día para ver sus eventos o añadir uno nuevo.")
+    document.createTextNode("Toca un día para verlo, tócalo dos veces para añadir o editar eventos.")
+  ]));
+
+  const previewCard = el("div",{class:"card"});
+  previewCard.appendChild(el("h3",{style:"text-transform:capitalize;"},[document.createTextNode(fmtDate(calendarSelectedDate))]));
+  const selEvents = eventsOnDate(calendarSelectedDate);
+  if(selEvents.length === 0){
+    previewCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin eventos este día.")]));
+  } else {
+    const previewList = el("div",{class:"list"});
+    selEvents.forEach(ev => {
+      previewList.appendChild(el("div",{class:"item"},[
+        el("div",{class:"top"},[
+          el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+            el("span",{class:"event-color-dot", style:"background:"+colorHex(ev.color)}),
+            el("strong",{},[document.createTextNode(ev.title)])
+          ])
+        ]),
+        el("div",{class:"meta"},[document.createTextNode((ev.time ? ev.time + " · " : "") + (ev.notify ? "🔔 Recordatorio activado" : "Sin recordatorio"))])
+      ]));
+    });
+    previewCard.appendChild(previewList);
+  }
+  root.appendChild(previewCard);
+
+  root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => openDayModal(calendarSelectedDate)},[
+    document.createTextNode("Añadir o editar eventos de este día")
   ]));
 
   root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => openUpcomingEventsModal()},[
@@ -964,6 +1053,12 @@ const DEPORTE_TIPOS = [
 const DEPORTE_STATS_TILE = {id:"estadisticas", icon:"📊", label:"Estadísticas", accent:"#c792ea"};
 
 let deporteSubView = null;
+let deporteWeekOffset = 0;
+
+function shortDayMonth(d){
+  const dt = new Date(d + "T00:00:00");
+  return dt.getDate() + " " + MONTH_NAMES_SHORT[dt.getMonth()].toLowerCase();
+}
 
 function renderDeporte(root){
   ensureSportShape();
@@ -973,13 +1068,18 @@ function renderDeporte(root){
   }
 
   root.appendChild(sectionHeader("Deporte semanal"));
-  const now = new Date();
-  const weekKey = isoWeekKey(now);
+  const viewDate = new Date(Date.now() + deporteWeekOffset*7*86400000);
+  const weekKey = isoWeekKey(viewDate);
   const wd = getWeekData(weekKey);
   const dates = weekDates(weekKey);
   const todayStr = todayISO();
 
   const sportCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("¿Hiciste deporte esta semana?")])]);
+  sportCard.appendChild(el("div",{class:"cal-nav"},[
+    el("button",{onclick:() => { deporteWeekOffset -= 1; openSection("deporte"); }},[document.createTextNode("‹")]),
+    el("div",{class:"cal-month", style:"font-size:13px;"},[document.createTextNode(shortDayMonth(dates[0]) + " – " + shortDayMonth(dates[6]))]),
+    el("button",{onclick:() => { deporteWeekOffset += 1; openSection("deporte"); }},[document.createTextNode("›")])
+  ]));
   const chips = el("div",{class:"week-days"});
   const labels = ["L","M","X","J","V","S","D"];
   dates.forEach((d,i) => {
@@ -998,6 +1098,9 @@ function renderDeporte(root){
     chips.appendChild(chip);
   });
   sportCard.appendChild(chips);
+  if(deporteWeekOffset !== 0){
+    sportCard.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { deporteWeekOffset = 0; openSection("deporte"); }},[document.createTextNode("Ir a esta semana")]));
+  }
   root.appendChild(sportCard);
 
   root.appendChild(el("h3",{style:"margin:6px 0 -6px;color:var(--text-dim);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;"},[document.createTextNode("Deportes")]));
@@ -1135,6 +1238,8 @@ function buildPieGradient(parts){
   return "conic-gradient(" + stops.join(", ") + ")";
 }
 
+let deporteStatsOpen = {};
+
 function renderEstadisticasSub(root){
   root.appendChild(deporteSubHeader("Estadísticas"));
 
@@ -1151,55 +1256,63 @@ function renderEstadisticasSub(root){
   const donePrevMonth = Array.from(doneSet).filter(d => monthKey(d) === prevMonthKey).length;
   const withoutThisMonth = Math.max(0, dayOfMonth - doneThisMonth);
   const pctThisMonth = dayOfMonth > 0 ? Math.round((doneThisMonth/dayOfMonth)*100) : 0;
+  const pctPrevMonth = daysInPrevMonth > 0 ? Math.round((donePrevMonth/daysInPrevMonth)*100) : 0;
   const diff = doneThisMonth - donePrevMonth;
-  const diffLabel = diff === 0 ? "= igual que el mes anterior" : (diff > 0 ? ("▲ +" + diff + " día(s) más que el mes anterior") : ("▼ " + Math.abs(diff) + " día(s) menos que el mes anterior"));
 
-  root.appendChild(el("div",{class:"card"},[
-    el("h3",{},[document.createTextNode("Este mes")]),
-    el("div",{class:"row"},[document.createTextNode("Días con deporte"), el("strong",{},[document.createTextNode(String(doneThisMonth))])]),
-    el("div",{class:"row"},[document.createTextNode("Días sin deporte"), el("strong",{},[document.createTextNode(String(withoutThisMonth))])]),
-    el("div",{class:"row"},[document.createTextNode("Porcentaje de días activos"), el("strong",{},[document.createTextNode(pctThisMonth + "%")])])
-  ]));
+  root.appendChild(collapsibleCard("Este mes", deporteStatsOpen, "mes", (body) => {
+    body.appendChild(el("div",{style:"display:flex;align-items:center;gap:16px;"},[
+      percentRing(pctThisMonth, 72, "var(--accent)"),
+      el("div",{style:"flex:1;display:flex;flex-direction:column;gap:6px;"},[
+        el("div",{class:"row"},[document.createTextNode("Días con deporte"), el("strong",{},[document.createTextNode(String(doneThisMonth))])]),
+        el("div",{class:"row"},[document.createTextNode("Días sin deporte"), el("strong",{},[document.createTextNode(String(withoutThisMonth))])])
+      ])
+    ]));
+  }, "deporte", true));
 
-  root.appendChild(el("div",{class:"card"},[
-    el("h3",{},[document.createTextNode("Comparativa con el mes anterior")]),
-    el("div",{class:"row"},[document.createTextNode("Días con deporte (mes anterior)"), el("strong",{},[document.createTextNode(donePrevMonth + " / " + daysInPrevMonth)])]),
-    el("div",{class:"meta"},[document.createTextNode(diffLabel)])
-  ]));
+  root.appendChild(collapsibleCard("Comparativa con el mes anterior", deporteStatsOpen, "comparativa", (body) => {
+    body.appendChild(el("div",{style:"display:flex;align-items:center;justify-content:space-around;gap:10px;"},[
+      el("div",{style:"display:flex;flex-direction:column;align-items:center;gap:6px;"},[
+        percentRing(pctPrevMonth, 64, "var(--text-dim)"),
+        el("div",{class:"meta"},[document.createTextNode("Mes anterior")])
+      ]),
+      el("div",{style:"display:flex;flex-direction:column;align-items:center;gap:6px;"},[
+        percentRing(pctThisMonth, 64, "var(--accent)"),
+        el("div",{class:"meta"},[document.createTextNode("Este mes")])
+      ])
+    ]));
+    body.appendChild(el("div",{style:"text-align:center;"},[deltaPill(diff, "día(s)")]));
+  }, "deporte"));
 
   const entryDates = sportEntryDates();
   const countInMonth = (arr, mk) => arr.filter(d => monthKey(d) === mk).length;
   const typeCountsThisMonth = DEPORTE_TIPOS.map(t => ({t, count: countInMonth(entryDates[t.id], curMonthKey)}));
   const maxCount = Math.max(1, ...typeCountsThisMonth.map(x => x.count));
-  const tipoCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Por tipo este mes")])]);
-  const sortedByCount = typeCountsThisMonth.slice().sort((a,b) => b.count - a.count);
-  sortedByCount.forEach(({t,count}) => {
-    tipoCard.appendChild(el("div",{class:"field", style:"gap:4px;"},[
-      el("div",{class:"row"},[
-        document.createTextNode(t.icon + " " + t.label),
-        el("strong",{},[document.createTextNode(String(count))])
-      ]),
-      el("div",{style:`height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;`},[
-        el("div",{style:`height:100%;border-radius:6px;background:${t.accent};width:${Math.round((count/maxCount)*100)}%;`})
-      ])
-    ]));
-  });
-  if(sortedByCount.every(x => x.count === 0)){
-    tipoCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay actividad registrada este mes.")]));
-  }
-  root.appendChild(tipoCard);
+  root.appendChild(collapsibleCard("Por tipo este mes", deporteStatsOpen, "tipo", (body) => {
+    const sortedByCount = typeCountsThisMonth.slice().sort((a,b) => b.count - a.count);
+    sortedByCount.forEach(({t,count}) => {
+      body.appendChild(el("div",{class:"field", style:"gap:4px;"},[
+        el("div",{class:"row"},[
+          document.createTextNode(t.icon + " " + t.label),
+          el("strong",{},[document.createTextNode(String(count))])
+        ]),
+        el("div",{style:`height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;`},[
+          el("div",{style:`height:100%;border-radius:6px;background:${t.accent};width:${Math.round((count/maxCount)*100)}%;`})
+        ])
+      ]));
+    });
+    if(sortedByCount.every(x => x.count === 0)){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay actividad registrada este mes.")]));
+    }
+  }, "deporte"));
 
   const typeTotals = DEPORTE_TIPOS.map(t => ({t, count: entryDates[t.id].length}));
   const grandTotal = typeTotals.reduce((a,x) => a+x.count, 0);
-  const totalCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Total y distribución")])]);
-  if(grandTotal === 0){
-    totalCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay datos suficientes para el diagrama.")]));
-  } else {
-    let acc = 0;
-    const pieParts = typeTotals.map(({t,count}) => {
-      const pct = (count/grandTotal)*100;
-      return {color:t.accent, pct};
-    });
+  root.appendChild(collapsibleCard("Total y distribución", deporteStatsOpen, "total", (body) => {
+    if(grandTotal === 0){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay datos suficientes para el diagrama.")]));
+      return;
+    }
+    const pieParts = typeTotals.map(({t,count}) => ({color:t.accent, pct:(count/grandTotal)*100}));
     const pieWrap = el("div",{style:"display:flex;align-items:center;gap:18px;flex-wrap:wrap;"});
     pieWrap.appendChild(el("div",{style:`width:120px;height:120px;border-radius:50%;background:${buildPieGradient(pieParts)};flex-shrink:0;`}));
     const legend = el("div",{class:"list", style:"flex:1;min-width:140px;"});
@@ -1214,19 +1327,15 @@ function renderEstadisticasSub(root){
       ]));
     });
     pieWrap.appendChild(legend);
-    totalCard.appendChild(pieWrap);
-    totalCard.appendChild(el("div",{class:"row"},[document.createTextNode("Total registrado"), el("strong",{},[document.createTextNode(String(grandTotal))])]));
-  }
-  root.appendChild(totalCard);
+    body.appendChild(pieWrap);
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Total registrado"), el("strong",{},[document.createTextNode(String(grandTotal))])]));
+  }, "deporte"));
 }
+
+let privadoStatsOpen = {};
 
 function renderPrivado(root){
   root.appendChild(sectionHeader("Seguimiento privado"));
-  const infoCard = el("div",{class:"card"},[
-    el("h3",{},[document.createTextNode("Sesiones")]),
-    el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Registra el día y la duración de cada sesión. Más adelante añadiremos los detalles concretos que me digas.")])
-  ]);
-  root.appendChild(infoCard);
 
   const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Nueva sesión")])]);
   const dateInput = el("input",{type:"date"}); dateInput.value = todayISO();
@@ -1245,18 +1354,18 @@ function renderPrivado(root){
   root.appendChild(formCard);
 
   const sessions = state.privado.sessions.slice().sort((a,b) => b.date.localeCompare(a.date));
-  const statsCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Estadísticas")])]);
-  if(sessions.length === 0){
-    statsCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay sesiones registradas.")]));
-  } else {
+  root.appendChild(collapsibleCard("Estadísticas", privadoStatsOpen, "stats", (body) => {
+    if(sessions.length === 0){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay sesiones registradas.")]));
+      return;
+    }
     const total = sessions.length;
     const avg = Math.round(sessions.reduce((a,s) => a+s.minutes,0)/total);
     const best = Math.max(...sessions.map(s => s.minutes));
-    statsCard.appendChild(el("div",{class:"row"},[document.createTextNode("Sesiones totales"), el("strong",{},[document.createTextNode(String(total))])]));
-    statsCard.appendChild(el("div",{class:"row"},[document.createTextNode("Duración media"), el("strong",{},[document.createTextNode(avg + " min")])]));
-    statsCard.appendChild(el("div",{class:"row"},[document.createTextNode("Mejor duración"), el("strong",{},[document.createTextNode(best + " min")])]));
-  }
-  root.appendChild(statsCard);
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Sesiones totales"), el("strong",{},[document.createTextNode(String(total))])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Duración media"), el("strong",{},[document.createTextNode(avg + " min")])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Mejor duración"), el("strong",{},[document.createTextNode(best + " min")])]));
+  }, "privado"));
 
   const listCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Historial")])]);
   const list = el("div",{class:"list"});
@@ -1447,6 +1556,8 @@ function renderFocusCategorySub(root, id){
   root.appendChild(historyCard);
 }
 
+let focusStatsOpen = {};
+
 function renderFocusEstadisticasSub(root){
   root.appendChild(focusSubHeader("Estadísticas"));
 
@@ -1463,43 +1574,52 @@ function renderFocusEstadisticasSub(root){
   const totalThisMonth = perCatThisMonth.reduce((a,x) => a+x.minutes,0);
   const totalPrevMonth = FOCUS_CATS.reduce((a,c) => a+sumMinutes(state.focus.categories[c.id].sessions, prevMonthKey), 0);
   const diff = totalThisMonth - totalPrevMonth;
-  const diffLabel = diff === 0 ? "= igual que el mes anterior" : (diff > 0 ? ("▲ +" + formatMinutes(diff) + " más que el mes anterior") : ("▼ " + formatMinutes(Math.abs(diff)) + " menos que el mes anterior"));
 
-  root.appendChild(el("div",{class:"card"},[
-    el("h3",{},[document.createTextNode("Este mes")]),
-    el("div",{class:"row"},[document.createTextNode("Tiempo total"), el("strong",{},[document.createTextNode(formatMinutes(totalThisMonth))])])
-  ]));
+  root.appendChild(collapsibleCard("Este mes", focusStatsOpen, "mes", (body) => {
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Tiempo total"), el("strong",{},[document.createTextNode(formatMinutes(totalThisMonth))])]));
+  }, "focus", true));
 
   const maxCatMinutes = Math.max(1, ...perCatThisMonth.map(x => x.minutes));
-  const tipoCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Por categoría este mes")])]);
-  perCatThisMonth.slice().sort((a,b) => b.minutes-a.minutes).forEach(({c,minutes}) => {
-    tipoCard.appendChild(el("div",{class:"field", style:"gap:4px;"},[
-      el("div",{class:"row"},[
-        document.createTextNode(c.icon + " " + c.label),
-        el("strong",{},[document.createTextNode(formatMinutes(minutes))])
+  root.appendChild(collapsibleCard("Por categoría este mes", focusStatsOpen, "tipo", (body) => {
+    perCatThisMonth.slice().sort((a,b) => b.minutes-a.minutes).forEach(({c,minutes}) => {
+      body.appendChild(el("div",{class:"field", style:"gap:4px;"},[
+        el("div",{class:"row"},[
+          document.createTextNode(c.icon + " " + c.label),
+          el("strong",{},[document.createTextNode(formatMinutes(minutes))])
+        ]),
+        el("div",{style:"height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;"},[
+          el("div",{style:`height:100%;border-radius:6px;background:${c.accent};width:${Math.round((minutes/maxCatMinutes)*100)}%;`})
+        ])
+      ]));
+    });
+    if(perCatThisMonth.every(x => x.minutes === 0)){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay sesiones registradas este mes.")]));
+    }
+  }, "focus"));
+
+  const pctThisMonth = (totalThisMonth+totalPrevMonth) > 0 ? Math.round((totalThisMonth/(totalThisMonth+totalPrevMonth))*100) : 0;
+  const pctPrevMonth = 100 - pctThisMonth;
+  root.appendChild(collapsibleCard("Comparativa con el mes anterior", focusStatsOpen, "comparativa", (body) => {
+    body.appendChild(el("div",{style:"display:flex;align-items:center;justify-content:space-around;gap:10px;"},[
+      el("div",{style:"display:flex;flex-direction:column;align-items:center;gap:6px;"},[
+        el("div",{style:"font-size:15px;font-weight:700;"},[document.createTextNode(formatMinutes(totalPrevMonth))]),
+        el("div",{class:"meta"},[document.createTextNode("Mes anterior")])
       ]),
-      el("div",{style:"height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;"},[
-        el("div",{style:`height:100%;border-radius:6px;background:${c.accent};width:${Math.round((minutes/maxCatMinutes)*100)}%;`})
+      el("div",{style:"display:flex;flex-direction:column;align-items:center;gap:6px;"},[
+        el("div",{style:"font-size:15px;font-weight:700;color:var(--accent);"},[document.createTextNode(formatMinutes(totalThisMonth))]),
+        el("div",{class:"meta"},[document.createTextNode("Este mes")])
       ])
     ]));
-  });
-  if(perCatThisMonth.every(x => x.minutes === 0)){
-    tipoCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay sesiones registradas este mes.")]));
-  }
-  root.appendChild(tipoCard);
-
-  root.appendChild(el("div",{class:"card"},[
-    el("h3",{},[document.createTextNode("Comparativa con el mes anterior")]),
-    el("div",{class:"row"},[document.createTextNode("Tiempo total (mes anterior)"), el("strong",{},[document.createTextNode(formatMinutes(totalPrevMonth))])]),
-    el("div",{class:"meta"},[document.createTextNode(diffLabel)])
-  ]));
+    body.appendChild(el("div",{style:"text-align:center;"},[deltaPill(diff >= 60 || diff <= -60 ? Math.round(diff/60) : diff, diff >= 60 || diff <= -60 ? "h" : "min")]));
+  }, "focus"));
 
   const totals = FOCUS_CATS.map(c => ({c, minutes: state.focus.categories[c.id].sessions.reduce((a,s) => a+s.minutes,0)}));
   const grandTotal = totals.reduce((a,x) => a+x.minutes,0);
-  const totalCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Total y distribución")])]);
-  if(grandTotal === 0){
-    totalCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay datos suficientes para el diagrama.")]));
-  } else {
+  root.appendChild(collapsibleCard("Total y distribución", focusStatsOpen, "total", (body) => {
+    if(grandTotal === 0){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay datos suficientes para el diagrama.")]));
+      return;
+    }
     const pieParts = totals.map(({c,minutes}) => ({color:c.accent, pct:(minutes/grandTotal)*100}));
     const pieWrap = el("div",{style:"display:flex;align-items:center;gap:18px;flex-wrap:wrap;"});
     pieWrap.appendChild(el("div",{style:`width:120px;height:120px;border-radius:50%;background:${buildPieGradient(pieParts)};flex-shrink:0;`}));
@@ -1515,52 +1635,66 @@ function renderFocusEstadisticasSub(root){
       ]));
     });
     pieWrap.appendChild(legend);
-    totalCard.appendChild(pieWrap);
-    totalCard.appendChild(el("div",{class:"row"},[document.createTextNode("Total registrado"), el("strong",{},[document.createTextNode(formatMinutes(grandTotal))])]));
-  }
-  root.appendChild(totalCard);
+    body.appendChild(pieWrap);
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Total registrado"), el("strong",{},[document.createTextNode(formatMinutes(grandTotal))])]));
+  }, "focus"));
 }
+
+let diarioOpenDates = {};
+let diarioOpenEntries = {};
 
 function renderDiario(root){
   root.appendChild(sectionHeader("Diario"));
-  const noteCard = el("div",{class:"card"},[
-    el("h3",{},[document.createTextNode("Notas de voz")]),
-    el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("La transcripción automática todavía no está activada aquí; de momento escribe tu entrada de texto. Lo dejamos pendiente para decidir juntos cómo transcribir sin perder las notificaciones.")])
-  ]);
-  root.appendChild(noteCard);
 
   const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Nueva entrada")])]);
   const textInput = el("textarea",{placeholder:"¿Qué ha pasado hoy?"});
   formCard.appendChild(textInput);
   formCard.appendChild(el("button",{class:"btn", onclick:() => {
     if(!textInput.value.trim()) return;
-    state.diario.entries.push({id:uid(), date:todayISO(), text:textInput.value.trim()});
+    const now = new Date();
+    const time = String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+    state.diario.entries.push({id:uid(), date:todayISO(), time, text:textInput.value.trim()});
     persist();
     openSection("diario");
   }},[document.createTextNode("Guardar entrada")]));
   root.appendChild(formCard);
 
-  const listCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Entradas")])]);
-  const entries = state.diario.entries.slice().sort((a,b) => b.id.localeCompare(a.id));
-  const list = el("div",{class:"list"});
+  const entries = state.diario.entries.slice().sort((a,b) => (b.date+(b.time||"")).localeCompare(a.date+(a.time||"")));
   if(entries.length === 0){
-    list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Todavía no has escrito nada.")]));
-  } else {
-    entries.forEach(en => {
-      list.appendChild(el("div",{class:"item"},[
-        el("div",{class:"top"},[
-          el("strong",{},[document.createTextNode(fmtDate(en.date))]),
-          el("span",{class:"icon-x", onclick:() => {
+    root.appendChild(el("div",{class:"card"},[el("div",{class:"empty-msg"},[document.createTextNode("Todavía no has escrito nada.")])]));
+    return;
+  }
+
+  const groups = {};
+  const order = [];
+  entries.forEach(en => {
+    if(!groups[en.date]){ groups[en.date] = []; order.push(en.date); }
+    groups[en.date].push(en);
+  });
+
+  order.forEach(dateStr => {
+    const dayEntries = groups[dateStr];
+    root.appendChild(collapsibleCard(capitalize(fmtDate(dateStr)) + " · " + dayEntries.length, diarioOpenDates, dateStr, (body) => {
+      dayEntries.forEach(en => {
+        const isOpen = !!diarioOpenEntries[en.id];
+        const entryEl = el("div",{class:"item"});
+        entryEl.appendChild(el("button",{class:"diario-entry-head", onclick:() => {
+          diarioOpenEntries[en.id] = !isOpen; openSection("diario");
+        }},[
+          el("strong",{},[document.createTextNode(en.time || "")]),
+          el("span",{class:"collapse-caret"},[document.createTextNode(isOpen ? "▾" : "▸")])
+        ]));
+        if(isOpen){
+          entryEl.appendChild(el("div",{class:"meta", style:"margin-top:8px;white-space:pre-wrap;"},[document.createTextNode(en.text)]));
+          entryEl.appendChild(el("button",{class:"btn secondary", style:"width:100%;margin-top:8px;", onclick:() => {
             state.diario.entries = state.diario.entries.filter(x => x.id !== en.id);
             persist(); openSection("diario");
-          }},[document.createTextNode("✕")])
-        ]),
-        el("div",{class:"meta"},[document.createTextNode(en.text)])
-      ]));
-    });
-  }
-  listCard.appendChild(list);
-  root.appendChild(listCard);
+          }},[document.createTextNode("Eliminar entrada")]));
+        }
+        body.appendChild(entryEl);
+      });
+    }, "diario", dateStr === todayISO()));
+  });
 }
 
 const IDEA_ICONS = ["💡","🚀","🎨","🛠️","📈","🌱","🎯","🧩","📚","💻","🏗️","🎬","🌍","📊","🔬","🎮"];
@@ -1735,11 +1869,24 @@ function renderRecordatorios(root){
   const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Nuevo recordatorio")])]);
   const textInput = el("input",{placeholder:"¿Qué tienes que recordar?"});
   const whenInput = el("input",{type:"date"});
+  const timeInput = el("input",{type:"time"});
+  const notifyInput = el("input",{type:"checkbox"});
   formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Recordatorio")]),textInput]));
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Para cuándo (opcional)")]),whenInput]));
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Fecha (opcional)")]),whenInput]));
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Hora (opcional)")]),timeInput]));
+  formCard.appendChild(el("div",{class:"row"},[
+    el("label",{style:"display:flex;align-items:center;gap:10px;"},[
+      el("span",{class:"switch"},[notifyInput, el("span",{class:"slider"})]),
+      document.createTextNode("Avisarme con notificación")
+    ])
+  ]));
   formCard.appendChild(el("button",{class:"btn", onclick:() => {
     if(!textInput.value.trim()) return;
-    state.recordatorios.items.push({id:uid(), text:textInput.value.trim(), when:whenInput.value, done:false});
+    if(notifyInput.checked) requestNotifPermission();
+    state.recordatorios.items.push({
+      id:uid(), text:textInput.value.trim(), when:whenInput.value, time:timeInput.value,
+      notify:notifyInput.checked, done:false
+    });
     persist();
     openSection("recordatorios");
   }},[document.createTextNode("Guardar")]));
@@ -1751,7 +1898,7 @@ function renderRecordatorios(root){
   if(pending.length === 0){
     list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Nada pendiente por ahora.")]));
   } else {
-    pending.forEach(r => {
+    pending.slice().sort((a,b) => (a.when||"")+(a.time||"") < (b.when||"")+(b.time||"") ? -1 : 1).forEach(r => {
       list.appendChild(el("div",{class:"item"},[
         el("div",{class:"top"},[
           el("strong",{},[document.createTextNode(r.text)]),
@@ -1760,7 +1907,7 @@ function renderRecordatorios(root){
             persist(); openSection("recordatorios");
           }},[document.createTextNode("✕")])
         ]),
-        r.when ? el("div",{class:"meta"},[document.createTextNode(fmtDate(r.when))]) : null,
+        (r.when || r.time) ? el("div",{class:"meta"},[document.createTextNode((r.when ? fmtDate(r.when) : "") + (r.time ? " · " + r.time : "") + (r.notify ? " · 🔔" : ""))]) : null,
         el("button",{class:"btn secondary", onclick:() => {
           r.done = true; persist(); openSection("recordatorios");
         }},[document.createTextNode("Marcar como hecho")])
@@ -1771,44 +1918,182 @@ function renderRecordatorios(root){
   root.appendChild(listCard);
 }
 
+const FINANZAS_CATS = ["Compra supermercado","Ocio","Suscripción","Gasto puntual","Bizum","Gasto fijo mensual","Ahorro"];
+const FINANZAS_CAT_COLORS = {
+  "Compra supermercado":"#5ee68f",
+  "Ocio":"#ff8fd6",
+  "Suscripción":"#6bd6ff",
+  "Gasto puntual":"#f5c542",
+  "Bizum":"#c792ea",
+  "Gasto fijo mensual":"#ff6b6b",
+  "Ahorro":"#5ee6c8",
+  "Sin categoría":"#98989e"
+};
+function finanzasCatColor(cat){ return FINANZAS_CAT_COLORS[cat] || "#98989e"; }
+
+function ensureRecurringFinanzas(){
+  const txs = state.finanzas.transactions;
+  const bySeries = {};
+  txs.filter(t => t.recurring && t.seriesId).forEach(t => {
+    if(!bySeries[t.seriesId] || t.date > bySeries[t.seriesId].date) bySeries[t.seriesId] = t;
+  });
+  let changed = false;
+  const todayStr = todayISO();
+  Object.values(bySeries).forEach(latest => {
+    let cur = latest;
+    let guard = 0;
+    while(guard < 24){
+      const d = new Date(cur.date + "T00:00:00");
+      const nextMonthFirst = new Date(d.getFullYear(), d.getMonth()+1, 1);
+      const daysInNext = new Date(nextMonthFirst.getFullYear(), nextMonthFirst.getMonth()+1, 0).getDate();
+      const targetDay = Math.min(d.getDate(), daysInNext);
+      const nextDate = new Date(nextMonthFirst.getFullYear(), nextMonthFirst.getMonth(), targetDay);
+      const nextDateStr = nextDate.toISOString().slice(0,10);
+      if(nextDateStr > todayStr) break;
+      let match = txs.find(t => t.seriesId === cur.seriesId && t.date === nextDateStr);
+      if(!match){
+        match = {id:uid(), type:cur.type, category:cur.category, amount:cur.amount, date:nextDateStr, recurring:true, seriesId:cur.seriesId};
+        txs.push(match);
+        changed = true;
+      }
+      cur = match;
+      guard++;
+    }
+  });
+  if(changed) persist();
+}
+
+let finanzasStatsOpen = {};
+
 function renderFinanzas(root){
+  ensureRecurringFinanzas();
   root.appendChild(sectionHeader("Finanzas"));
   const txs = state.finanzas.transactions;
   const income = txs.filter(t => t.type === "ingreso").reduce((a,t) => a+t.amount,0);
   const expense = txs.filter(t => t.type === "gasto").reduce((a,t) => a+t.amount,0);
   const balance = income - expense;
 
-  const summaryCard = el("div",{class:"card"},[
+  root.appendChild(el("div",{class:"card"},[
     el("h3",{},[document.createTextNode("Resumen")]),
     el("div",{class:"row"},[document.createTextNode("Ingresos"), el("strong",{style:"color:var(--accent);"},[document.createTextNode(income.toFixed(2) + " €")])]),
     el("div",{class:"row"},[document.createTextNode("Gastos"), el("strong",{style:"color:var(--danger);"},[document.createTextNode(expense.toFixed(2) + " €")])]),
     el("div",{class:"row"},[document.createTextNode("Balance"), el("strong",{},[document.createTextNode(balance.toFixed(2) + " €")])])
-  ]);
-  root.appendChild(summaryCard);
+  ]));
 
   const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Nuevo movimiento")])]);
   const typeSelect = el("select",{},[
     el("option",{value:"gasto"},[document.createTextNode("Gasto")]),
     el("option",{value:"ingreso"},[document.createTextNode("Ingreso")])
   ]);
-  const categoryInput = el("input",{placeholder:"Categoría (ej. comida, transporte)"});
+  const categorySelect = el("select",{}, FINANZAS_CATS.map(c => el("option",{value:c},[document.createTextNode(c)])));
   const amountInput = el("input",{type:"number", step:"0.01", placeholder:"Cantidad en euros"});
   const dateInput = el("input",{type:"date"}); dateInput.value = todayISO();
+  const recurringInput = el("input",{type:"checkbox"});
+  const recurringField = el("div",{class:"row", style:"display:none;"},[
+    el("label",{style:"display:flex;align-items:center;gap:10px;"},[
+      el("span",{class:"switch"},[recurringInput, el("span",{class:"slider"})]),
+      document.createTextNode("Repetir automáticamente el mes que viene, el mismo día")
+    ])
+  ]);
+  categorySelect.addEventListener("change", () => {
+    recurringField.style.display = categorySelect.value === "Gasto fijo mensual" ? "flex" : "none";
+  });
   formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Tipo")]),typeSelect]));
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Categoría")]),categoryInput]));
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Categoría")]),categorySelect]));
   formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Cantidad")]),amountInput]));
   formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Fecha")]),dateInput]));
+  formCard.appendChild(recurringField);
   formCard.appendChild(el("button",{class:"btn", onclick:() => {
     const amount = parseFloat(amountInput.value);
     if(!amount || amount <= 0) return;
+    const isRecurring = categorySelect.value === "Gasto fijo mensual" && recurringInput.checked;
+    const newId = uid();
     state.finanzas.transactions.push({
-      id:uid(), type:typeSelect.value, category:categoryInput.value.trim() || "Sin categoría",
-      amount, date:dateInput.value
+      id:newId, type:typeSelect.value, category:categorySelect.value,
+      amount, date:dateInput.value, recurring:isRecurring, seriesId:isRecurring ? newId : null
     });
     persist();
     openSection("finanzas");
   }},[document.createTextNode("Guardar")]));
   root.appendChild(formCard);
+
+  const today = new Date();
+  const todayStr = todayISO();
+  const curMonthKey = monthKey(todayStr);
+  const prevMonthDate = new Date(today.getFullYear(), today.getMonth()-1, 1);
+  const prevMonthKey = monthKey(prevMonthDate.toISOString().slice(0,10));
+  const expenseTxs = txs.filter(t => t.type === "gasto");
+  const sumWhere = (fn) => txs.filter(fn).reduce((a,t) => a+t.amount, 0);
+  const expenseThisMonth = sumWhere(t => t.type==="gasto" && monthKey(t.date)===curMonthKey);
+  const expensePrevMonth = sumWhere(t => t.type==="gasto" && monthKey(t.date)===prevMonthKey);
+
+  root.appendChild(collapsibleCard("Comparativa mensual", finanzasStatsOpen, "comparativa", (body) => {
+    body.appendChild(el("div",{style:"display:flex;align-items:center;justify-content:space-around;gap:10px;"},[
+      el("div",{style:"display:flex;flex-direction:column;align-items:center;gap:6px;"},[
+        el("div",{style:"font-size:15px;font-weight:700;"},[document.createTextNode(expensePrevMonth.toFixed(2) + " €")]),
+        el("div",{class:"meta"},[document.createTextNode("Mes anterior")])
+      ]),
+      el("div",{style:"display:flex;flex-direction:column;align-items:center;gap:6px;"},[
+        el("div",{style:"font-size:15px;font-weight:700;color:var(--danger);"},[document.createTextNode(expenseThisMonth.toFixed(2) + " €")]),
+        el("div",{class:"meta"},[document.createTextNode("Este mes")])
+      ])
+    ]));
+    const diff = Math.round((expenseThisMonth-expensePrevMonth)*100)/100;
+    const pillCls = diff > 0 ? "danger" : (diff < 0 ? "" : "");
+    body.appendChild(el("div",{style:"text-align:center;"},[
+      el("span",{class:"pill " + pillCls},[document.createTextNode(diff===0 ? "= igual" : ((diff>0?"▲ +":"▼ ")+Math.abs(diff).toFixed(2)+" €"))])
+    ]));
+  }, "finanzas", true));
+
+  root.appendChild(collapsibleCard("Ahorro y gasto", finanzasStatsOpen, "ahorro", (body) => {
+    const ahorroTotal = sumWhere(t => t.category === "Ahorro");
+    const gastoTotal = sumWhere(t => t.type === "gasto" && t.category !== "Ahorro");
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Total ahorrado"), el("strong",{style:"color:var(--accent);"},[document.createTextNode(ahorroTotal.toFixed(2) + " €")])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Total gastado (sin ahorro)"), el("strong",{style:"color:var(--danger);"},[document.createTextNode(gastoTotal.toFixed(2) + " €")])]));
+  }, "finanzas"));
+
+  root.appendChild(collapsibleCard("Ocio vs. gastos fijos", finanzasStatsOpen, "ociofijo", (body) => {
+    const ocioTotal = sumWhere(t => t.category === "Ocio");
+    const fijoTotal = sumWhere(t => t.category === "Gasto fijo mensual");
+    const maxVal = Math.max(1, ocioTotal, fijoTotal);
+    body.appendChild(el("div",{class:"field", style:"gap:4px;"},[
+      el("div",{class:"row"},[document.createTextNode("🎉 Ocio y capricho"), el("strong",{},[document.createTextNode(ocioTotal.toFixed(2) + " €")])]),
+      el("div",{style:"height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;"},[
+        el("div",{style:`height:100%;border-radius:6px;background:${finanzasCatColor("Ocio")};width:${Math.round((ocioTotal/maxVal)*100)}%;`})
+      ])
+    ]));
+    body.appendChild(el("div",{class:"field", style:"gap:4px;"},[
+      el("div",{class:"row"},[document.createTextNode("📌 Gastos fijos mensuales"), el("strong",{},[document.createTextNode(fijoTotal.toFixed(2) + " €")])]),
+      el("div",{style:"height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;"},[
+        el("div",{style:`height:100%;border-radius:6px;background:${finanzasCatColor("Gasto fijo mensual")};width:${Math.round((fijoTotal/maxVal)*100)}%;`})
+      ])
+    ]));
+  }, "finanzas"));
+
+  root.appendChild(collapsibleCard("Por categoría (histórico)", finanzasStatsOpen, "categorias", (body) => {
+    const catTotals = FINANZAS_CATS.map(c => ({cat:c, amount: sumWhere(t => t.type==="gasto" && t.category===c)})).filter(x => x.amount > 0);
+    const grandTotal = catTotals.reduce((a,x) => a+x.amount,0);
+    if(grandTotal === 0){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay gastos suficientes para el diagrama.")]));
+      return;
+    }
+    const pieParts = catTotals.map(x => ({color:finanzasCatColor(x.cat), pct:(x.amount/grandTotal)*100}));
+    const pieWrap = el("div",{style:"display:flex;align-items:center;gap:18px;flex-wrap:wrap;"});
+    pieWrap.appendChild(el("div",{style:`width:120px;height:120px;border-radius:50%;background:${buildPieGradient(pieParts)};flex-shrink:0;`}));
+    const legend = el("div",{class:"list", style:"flex:1;min-width:140px;"});
+    catTotals.forEach(x => {
+      const pct = Math.round((x.amount/grandTotal)*100);
+      legend.appendChild(el("div",{class:"row"},[
+        el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+          el("span",{class:"event-color-dot", style:"background:"+finanzasCatColor(x.cat)}),
+          document.createTextNode(x.cat)
+        ]),
+        el("strong",{},[document.createTextNode(x.amount.toFixed(2) + " € · " + pct + "%")])
+      ]));
+    });
+    pieWrap.appendChild(legend);
+    body.appendChild(pieWrap);
+  }, "finanzas"));
 
   const listCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Movimientos")])]);
   const sorted = txs.slice().sort((a,b) => b.date.localeCompare(a.date));
@@ -1819,13 +2104,16 @@ function renderFinanzas(root){
     sorted.forEach(t => {
       list.appendChild(el("div",{class:"item"},[
         el("div",{class:"top"},[
-          el("strong",{},[document.createTextNode(t.category)]),
+          el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+            el("span",{class:"event-color-dot", style:"background:"+finanzasCatColor(t.category)}),
+            el("strong",{},[document.createTextNode(t.category)])
+          ]),
           el("span",{class:"icon-x", onclick:() => {
             state.finanzas.transactions = state.finanzas.transactions.filter(x => x.id !== t.id);
             persist(); openSection("finanzas");
           }},[document.createTextNode("✕")])
         ]),
-        el("div",{class:"meta"},[document.createTextNode(fmtDate(t.date) + " · " + (t.type === "ingreso" ? "+" : "-") + t.amount.toFixed(2) + " €")])
+        el("div",{class:"meta"},[document.createTextNode(fmtDate(t.date) + " · " + (t.type === "ingreso" ? "+" : "-") + t.amount.toFixed(2) + " €" + (t.recurring ? " · 🔁" : ""))])
       ]));
     });
   }
@@ -2170,62 +2458,156 @@ function sleepHours(bed, wake){
 function estimateRemCycles(hours){
   return Math.floor((hours*60)/90);
 }
-function sleepCategory(hours, remCycles){
-  if(hours >= 7 && hours <= 9 && remCycles >= 4) return {label:"Bien", cls:""};
-  if(hours >= 6 && hours < 12) return {label:"Regular", cls:"warn"};
+function timeToMinutes(t){
+  const [h,m] = t.split(":").map(Number);
+  return h*60+m;
+}
+function computeSleepScore(bed, wake, hours){
+  const bedMins = timeToMinutes(bed);
+  const wakeMins = timeToMinutes(wake);
+  const bedAdj = bedMins < 12*60 ? bedMins + 1440 : bedMins;
+  const bedDiff = Math.abs(bedAdj - (23*60+30));
+  const bedScore = Math.max(0, 2.5 - (bedDiff/180)*2.5);
+  const wakeDiff = Math.abs(wakeMins - (7*60+30));
+  const wakeScore = Math.max(0, 2.5 - (wakeDiff/180)*2.5);
+  const hoursScore = Math.max(0, 5 - Math.abs(hours-8)*1.2);
+  const total = Math.min(10, Math.max(0, hoursScore + bedScore + wakeScore));
+  return Math.round(total*10)/10;
+}
+function sleepScoreLabel(score){
+  if(score >= 8) return {label:"Bien", cls:""};
+  if(score >= 5) return {label:"Regular", cls:"warn"};
   return {label:"Mal", cls:"danger"};
 }
 function todaySleepLog(){
   return state.sueno.logs.find(l => l.date === todayISO());
 }
 
+const SUENO_MOODS = [
+  {v:1, icon:"😩", label:"Fatal"},
+  {v:2, icon:"😕", label:"Mal"},
+  {v:3, icon:"😐", label:"Regular"},
+  {v:4, icon:"🙂", label:"Bien"},
+  {v:5, icon:"😄", label:"Genial"}
+];
+function moodInfo(v){ return SUENO_MOODS.find(m => m.v === v); }
+
+let suenoEditingDate = null;
+let suenoStatsOpen = {};
+
 function renderSueno(root){
   root.appendChild(sectionHeader("Sueño"));
   const logs = state.sueno.logs.slice().sort((a,b) => b.date.localeCompare(a.date));
+  const editingLog = suenoEditingDate ? state.sueno.logs.find(l => l.date === suenoEditingDate) : todaySleepLog();
+  const formDate = suenoEditingDate || todayISO();
 
-  const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Registrar hoy")])]);
+  const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode(suenoEditingDate ? "Editar registro" : "Registrar hoy")])]);
   const bedInput = el("input",{type:"time"});
   const wakeInput = el("input",{type:"time"});
-  const existing = todaySleepLog();
-  if(existing){
-    bedInput.value = existing.bed; wakeInput.value = existing.wake;
+  let selectedMood = editingLog ? (editingLog.mood || null) : null;
+  let showNote = editingLog && !!editingLog.note;
+  const noteInput = el("input",{placeholder:"¿Cómo te has sentido al levantarte? (opcional)"});
+  if(editingLog){
+    bedInput.value = editingLog.bed; wakeInput.value = editingLog.wake;
+    noteInput.value = editingLog.note || "";
   }
+  formCard.appendChild(el("div",{class:"meta"},[document.createTextNode(capitalize(fmtDate(formDate)))]));
   formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Hora de dormir")]),bedInput]));
   formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Hora de despertar")]),wakeInput]));
-  formCard.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:12px;"},[document.createTextNode("Los ciclos REM se estiman automáticamente a partir de las horas dormidas (≈90 min por ciclo).")]));
+
+  const moodRow = el("div",{class:"chip-row"});
+  function refreshMoodRow(){
+    moodRow.innerHTML = "";
+    SUENO_MOODS.forEach(m => {
+      moodRow.appendChild(el("button",{class:"chip" + (selectedMood===m.v ? " selected" : ""), onclick:() => { selectedMood = m.v; refreshMoodRow(); }},[document.createTextNode(m.icon + " " + m.label)]));
+    });
+  }
+  refreshMoodRow();
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("¿Cómo te has sentido al despertar?")]),moodRow]));
+
+  if(showNote){
+    formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Nota")]),noteInput]));
+  } else {
+    formCard.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { showNote = true; openSection("sueno"); }},[document.createTextNode("+ Añadir nota")]));
+  }
+
+  formCard.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:12px;"},[document.createTextNode("Los ciclos REM se estiman a partir de las horas dormidas (≈90 min por ciclo). La puntuación también tiene en cuenta si te acostaste o te levantaste muy pronto o muy tarde.")]));
   formCard.appendChild(el("button",{class:"btn", onclick:() => {
     if(!bedInput.value || !wakeInput.value) return;
     const hours = sleepHours(bedInput.value, wakeInput.value);
     const remCycles = estimateRemCycles(hours);
-    const entry = {date:todayISO(), bed:bedInput.value, wake:wakeInput.value, hours, remCycles};
-    const idx = state.sueno.logs.findIndex(l => l.date === todayISO());
+    const score = computeSleepScore(bedInput.value, wakeInput.value, hours);
+    const entry = {date:formDate, bed:bedInput.value, wake:wakeInput.value, hours, remCycles, score, mood:selectedMood, note:noteInput.value.trim()};
+    const idx = state.sueno.logs.findIndex(l => l.date === formDate);
     if(idx >= 0) state.sueno.logs[idx] = entry; else state.sueno.logs.push(entry);
+    suenoEditingDate = null;
     persist();
     openSection("sueno");
   }},[document.createTextNode("Guardar")]));
+  if(suenoEditingDate){
+    formCard.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { suenoEditingDate = null; openSection("sueno"); }},[document.createTextNode("Cancelar edición")]));
+  }
   root.appendChild(formCard);
 
-  if(existing){
-    const cat = sleepCategory(existing.hours, existing.remCycles);
-    const todayCard = el("div",{class:"card"},[
+  const today = todaySleepLog();
+  if(today && !suenoEditingDate){
+    const cat = sleepScoreLabel(today.score != null ? today.score : 0);
+    root.appendChild(el("div",{class:"card"},[
       el("h3",{},[document.createTextNode("Hoy")]),
-      el("div",{class:"row"},[document.createTextNode("Horas dormidas"), el("strong",{},[document.createTextNode(existing.hours.toFixed(1) + " h")])]),
-      el("span",{class:"pill " + cat.cls},[document.createTextNode(cat.label)])
-    ]);
-    root.appendChild(todayCard);
+      el("div",{style:"display:flex;align-items:center;gap:16px;"},[
+        percentRing((today.score||0)*10, 64, "var(--accent)"),
+        el("div",{style:"flex:1;display:flex;flex-direction:column;gap:6px;"},[
+          el("div",{class:"row"},[document.createTextNode("Horas dormidas"), el("strong",{},[document.createTextNode(today.hours.toFixed(1) + " h")])]),
+          el("div",{class:"row"},[document.createTextNode("Nota de sueño"), el("strong",{},[document.createTextNode((today.score||0).toFixed(1) + "/10")])]),
+          el("span",{class:"pill " + cat.cls},[document.createTextNode(cat.label)])
+        ])
+      ])
+    ]));
   }
 
-  const statsCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Estadísticas")])]);
-  if(logs.length === 0){
-    statsCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin registros todavía.")]));
-  } else {
+  root.appendChild(collapsibleCard("Estadísticas", suenoStatsOpen, "resumen", (body) => {
+    if(logs.length === 0){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin registros todavía.")]));
+      return;
+    }
     const avgHours = logs.reduce((a,l) => a+l.hours,0)/logs.length;
     const avgRem = logs.reduce((a,l) => a+l.remCycles,0)/logs.length;
-    statsCard.appendChild(el("div",{class:"row"},[document.createTextNode("Noches registradas"), el("strong",{},[document.createTextNode(String(logs.length))])]));
-    statsCard.appendChild(el("div",{class:"row"},[document.createTextNode("Media de horas"), el("strong",{},[document.createTextNode(avgHours.toFixed(1) + " h")])]));
-    statsCard.appendChild(el("div",{class:"row"},[document.createTextNode("Media de ciclos REM"), el("strong",{},[document.createTextNode(avgRem.toFixed(1))])]));
-  }
-  root.appendChild(statsCard);
+    const avgScore = logs.reduce((a,l) => a+(l.score||0),0)/logs.length;
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Noches registradas"), el("strong",{},[document.createTextNode(String(logs.length))])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Media de horas"), el("strong",{},[document.createTextNode(avgHours.toFixed(1) + " h")])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Media de ciclos REM"), el("strong",{},[document.createTextNode(avgRem.toFixed(1))])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Nota media"), el("strong",{},[document.createTextNode(avgScore.toFixed(1) + "/10")])]));
+  }, "sueno", true));
+
+  root.appendChild(collapsibleCard("Distribución de calidad", suenoStatsOpen, "distribucion", (body) => {
+    if(logs.length === 0){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin registros todavía.")]));
+      return;
+    }
+    const buckets = [
+      {id:"bien", label:"Bien", accent:"#5ee68f", test:l => (l.score||0) >= 8},
+      {id:"regular", label:"Regular", accent:"#f5c542", test:l => (l.score||0) >= 5 && (l.score||0) < 8},
+      {id:"mal", label:"Mal", accent:"#ff6b6b", test:l => (l.score||0) < 5}
+    ];
+    const counts = buckets.map(b => ({b, count: logs.filter(b.test).length}));
+    const total = logs.length;
+    const pieParts = counts.map(({b,count}) => ({color:b.accent, pct:(count/total)*100}));
+    const pieWrap = el("div",{style:"display:flex;align-items:center;gap:18px;flex-wrap:wrap;"});
+    pieWrap.appendChild(el("div",{style:`width:110px;height:110px;border-radius:50%;background:${buildPieGradient(pieParts)};flex-shrink:0;`}));
+    const legend = el("div",{class:"list", style:"flex:1;min-width:140px;"});
+    counts.forEach(({b,count}) => {
+      const pct = total ? Math.round((count/total)*100) : 0;
+      legend.appendChild(el("div",{class:"row"},[
+        el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+          el("span",{class:"event-color-dot", style:"background:"+b.accent}),
+          document.createTextNode(b.label)
+        ]),
+        el("strong",{},[document.createTextNode(count + " · " + pct + "%")])
+      ]));
+    });
+    pieWrap.appendChild(legend);
+    body.appendChild(pieWrap);
+  }, "sueno"));
 
   const historyCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Historial")])]);
   const list = el("div",{class:"list"});
@@ -2233,13 +2615,23 @@ function renderSueno(root){
     list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("—")]));
   } else {
     logs.forEach(l => {
-      const cat = sleepCategory(l.hours, l.remCycles);
+      const cat = sleepScoreLabel(l.score != null ? l.score : 0);
+      const mood = l.mood ? moodInfo(l.mood) : null;
       list.appendChild(el("div",{class:"item"},[
         el("div",{class:"top"},[
           el("strong",{},[document.createTextNode(fmtDate(l.date))]),
-          el("span",{class:"pill " + cat.cls},[document.createTextNode(cat.label)])
+          el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+            el("span",{class:"pill " + cat.cls},[document.createTextNode(cat.label)]),
+            el("span",{class:"icon-x", onclick:() => { suenoEditingDate = l.date; openSection("sueno"); }},[document.createTextNode("✎")]),
+            el("span",{class:"icon-x", onclick:() => {
+              state.sueno.logs = state.sueno.logs.filter(x => x.date !== l.date);
+              if(suenoEditingDate === l.date) suenoEditingDate = null;
+              persist(); openSection("sueno");
+            }},[document.createTextNode("✕")])
+          ])
         ]),
-        el("div",{class:"meta"},[document.createTextNode(l.bed + " → " + l.wake + " · " + l.hours.toFixed(1) + " h · REM est. " + l.remCycles)])
+        el("div",{class:"meta"},[document.createTextNode(l.bed + " → " + l.wake + " · " + l.hours.toFixed(1) + " h · REM est. " + l.remCycles + " · " + (l.score!=null ? l.score.toFixed(1)+"/10" : "—") + (mood ? " · " + mood.icon : ""))]),
+        l.note ? el("div",{class:"meta"},[document.createTextNode(l.note)]) : null
       ]));
     });
   }
@@ -2393,9 +2785,19 @@ function registerServiceWorker(){
   }
 }
 
+function initHapticFeedback(){
+  const selector = "button, .cal-day:not(.empty), .day-chip, .month-cell, .idea-icon-opt, .chip, .star-btn, .color-swatch, .tile";
+  document.addEventListener("click", (e) => {
+    const target = e.target.closest(selector);
+    if(!target) return;
+    try{ if(navigator.vibrate) navigator.vibrate(10); }catch(err){}
+  }, true);
+}
+
 function init(){
   initPinScreen();
   registerServiceWorker();
+  initHapticFeedback();
 }
 
 const recoveryScreen = document.getElementById("recovery-screen");
