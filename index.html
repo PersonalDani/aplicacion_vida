@@ -641,7 +641,7 @@ function requestNotifPermission(){
 }
 
 function checkEventReminders(){
-  if(!("Notification" in window) || Notification.permission !== "granted") return;
+  return; //deshabilitado: recordatorios los envia el servidor
   const now = new Date();
   const nowDateStr = todayISO();
   let changed = false;
