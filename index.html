@@ -1103,7 +1103,16 @@ function renderSincronizacion(root){
   const pushStatus = pushStatusLabel();
   pushCard.appendChild(el("span",{class:"pill " + pushStatus.cls},[document.createTextNode(pushStatus.text)]));
   pushCard.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:12px;"},[document.createTextNode("Actívalo para recibir avisos aunque tengas la app cerrada. En iPhone, la app debe estar instalada en la pantalla de inicio (Compartir > Añadir a pantalla de inicio) para que esto funcione.")]));
-  pushCard.appendChild(el("button",{class:"btn", onclick:() => enablePushNotifications().then(() => openSection("perfil"))},[document.createTextNode("Activar notificaciones push")]));
+  const pushMsg = el("p",{id:"pushDebugMsg", style:"margin:8px 0 0 0;color:var(--text-dim);font-size:12px;white-space:pre-wrap;"},[]);
+  const pushBtn = el("button",{class:"btn", onclick:() => {
+    pushBtn.disabled = true;
+    enablePushNotifications(m => { pushMsg.textContent = m; }).then(ok => {
+      pushBtn.disabled = false;
+      if(ok) openSection("perfil");
+    });
+  }},[document.createTextNode("Activar notificaciones push")]);
+  pushCard.appendChild(pushBtn);
+  pushCard.appendChild(pushMsg);
   root.appendChild(pushCard);
 }
 
@@ -1124,32 +1133,38 @@ function urlBase64ToUint8Array(base64String){
   return outputArray;
 }
 
-async function enablePushNotifications(){
+async function enablePushNotifications(log){
+  log = log || function(){};
+  log("Paso 1: comprobando soporte del navegador...");
   if(!("serviceWorker" in navigator)){
-    alert("Paso 1 falló: este navegador no soporta Service Worker.");
-    return;
+    log("Paso 1 falló: este navegador no soporta Service Worker.");
+    return false;
   }
   if(!("Notification" in window)){
-    alert("Paso 2 falló: este navegador no soporta Notification.");
-    return;
+    log("Paso 2 falló: este navegador no soporta Notification.");
+    return false;
   }
+  log("Paso 2: pidiendo permiso de notificaciones...");
   let perm;
   try{
     perm = await Notification.requestPermission();
   }catch(e){
-    alert("Paso 3 falló (pedir permiso): " + e.message);
-    return;
+    log("Paso 3 falló (pedir permiso): " + e.name + " - " + e.message);
+    return false;
   }
   if(perm !== "granted"){
-    alert("No se concedió el permiso de notificaciones (estado: " + perm + ").");
-    return;
+    log("No se concedió el permiso de notificaciones (estado: " + perm + ").");
+    return false;
   }
   try{
-    const reg = await navigator.serviceWorker.ready;
+    log("Paso 4: esperando al Service Worker...");
+    const swReadyTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Tiempo de espera agotado tras 10s")), 10000));
+    const reg = await Promise.race([navigator.serviceWorker.ready, swReadyTimeout]);
     if(!("pushManager" in reg)){
-      alert("Paso 4 falló: este dispositivo no soporta Push aquí. Asegúrate de abrir la app desde el icono de la pantalla de inicio, no desde Safari, y que sea iOS 16.4 o superior.");
-      return;
+      log("Paso 4 falló: este dispositivo no soporta Push aquí. Asegúrate de abrir la app desde el icono de la pantalla de inicio, no desde Safari, y que sea iOS 16.4 o superior.");
+      return false;
     }
+    log("Paso 5: creando la suscripción push...");
     let sub = await reg.pushManager.getSubscription();
     if(!sub){
       sub = await reg.pushManager.subscribe({
@@ -1158,9 +1173,10 @@ async function enablePushNotifications(){
       });
     }
     if(!syncConfig || !syncConfig.url || !syncConfig.anonKey){
-      alert("Paso 6 falló: la sincronización con Supabase no está configurada, así que la suscripción no se puede guardar en la nube. Ve a Ajustes, guarda la URL y la clave de Supabase, y vuelve a intentarlo.");
-      return;
+      log("Paso 6 falló: la sincronización con Supabase no está configurada. Ve arriba, guarda la URL y la clave, y vuelve a intentarlo.");
+      return false;
     }
+    log("Paso 6: guardando la suscripción en Supabase...");
     const res = await fetch(syncConfig.url + "/rest/v1/vida_push_subscriptions?on_conflict=id", {
       method:"POST",
       headers:{
@@ -1173,13 +1189,15 @@ async function enablePushNotifications(){
     });
     if(!res.ok){
       const text = await res.text();
-      alert("Paso 6 falló: Supabase respondió " + res.status + " - " + text);
-      return;
+      log("Paso 6 falló: Supabase respondió " + res.status + " - " + text);
+      return false;
     }
     safeSet(PUSH_SUBSCRIBED_KEY, true);
-    alert("Notificaciones push activadas correctamente.");
+    log("Notificaciones push activadas correctamente.");
+    return true;
   }catch(e){
-    alert("Paso 5 falló (subscribe): " + e.name + " - " + e.message);
+    log("Paso 5 falló (subscribe): " + e.name + " - " + e.message);
+    return false;
   }
 }
 
