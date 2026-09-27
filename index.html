@@ -1157,22 +1157,24 @@ async function enablePushNotifications(){
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
     }
-    if(syncConfig && syncConfig.url && syncConfig.anonKey){
-      const res = await fetch(syncConfig.url + "/rest/v1/vida_push_subscriptions?on_conflict=id", {
-        method:"POST",
-        headers:{
-          "apikey": syncConfig.anonKey,
-          "Authorization": "Bearer " + syncConfig.anonKey,
-          "Content-Type":"application/json",
-          "Prefer":"resolution=merge-duplicates,return=minimal"
-        },
-        body: JSON.stringify({id:SYNC_ROW_ID, subscription: sub, updated_at: new Date().toISOString()})
-      });
-      if(!res.ok){
-        const text = await res.text();
-        alert("Paso 6 falló: Supabase respondió " + res.status + " - " + text);
-        return;
-      }
+    if(!syncConfig || !syncConfig.url || !syncConfig.anonKey){
+      alert("Paso 6 falló: la sincronización con Supabase no está configurada, así que la suscripción no se puede guardar en la nube. Ve a Ajustes, guarda la URL y la clave de Supabase, y vuelve a intentarlo.");
+      return;
+    }
+    const res = await fetch(syncConfig.url + "/rest/v1/vida_push_subscriptions?on_conflict=id", {
+      method:"POST",
+      headers:{
+        "apikey": syncConfig.anonKey,
+        "Authorization": "Bearer " + syncConfig.anonKey,
+        "Content-Type":"application/json",
+        "Prefer":"resolution=merge-duplicates,return=minimal"
+      },
+      body: JSON.stringify({id:SYNC_ROW_ID, subscription: sub, updated_at: new Date().toISOString()})
+    });
+    if(!res.ok){
+      const text = await res.text();
+      alert("Paso 6 falló: Supabase respondió " + res.status + " - " + text);
+      return;
     }
     safeSet(PUSH_SUBSCRIBED_KEY, true);
     alert("Notificaciones push activadas correctamente.");
