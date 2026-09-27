@@ -50,7 +50,7 @@ body{
   display:flex;align-items:center;justify-content:center;
   transition:transform .1s ease, background .1s ease;
 }
-.back-btn:active{transform:scale(0.88);background:var(--bg-elev);}
+.back-btn:active{transform:scale(0.82);background:var(--bg-elev);opacity:0.85;}
 
 .avatar-btn{
   width:40px;height:40px;flex-shrink:0;padding:0;
@@ -136,10 +136,13 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .week-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
 .day-chip{
   aspect-ratio:1;border-radius:10px;background:var(--bg-elev);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:12px;font-weight:700;color:var(--text-dim);
   transition:transform .1s ease, filter .1s ease;
 }
+.day-chip .day-chip-num{font-size:10px;font-weight:600;opacity:0.85;}
 .day-chip.done{background:var(--accent);color:#04140f;border-color:var(--accent);}
+.day-chip.today{box-shadow:0 0 0 2px var(--accent) inset;}
 .day-chip:active{transform:scale(0.88);filter:brightness(0.9);}
 .empty-msg{color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0;}
 
@@ -190,6 +193,21 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .cal-nav button{background:var(--bg-elev);border:1px solid var(--border);color:var(--text);border-radius:10px;width:36px;height:36px;font-size:18px;}
 .cal-nav button:active{transform:scale(0.92);}
 .cal-month{font-weight:700;font-size:16px;text-transform:capitalize;}
+.cal-month-btn{
+  background:none;border:none;color:var(--text);font-weight:700;font-size:16px;text-transform:capitalize;
+  display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:10px;
+  transition:transform .1s ease, opacity .1s ease;
+}
+.cal-month-btn .cal-month-caret{font-size:11px;color:var(--text-dim);}
+.cal-month-btn:active{transform:scale(0.94);opacity:0.7;}
+.month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.month-cell{
+  padding:14px 0;border-radius:12px;background:var(--bg-elev);border:1px solid var(--border);
+  color:var(--text);font-size:14px;font-weight:600;text-align:center;
+  transition:transform .1s ease, filter .1s ease;
+}
+.month-cell.selected{background:var(--accent);color:#04140f;border-color:var(--accent);}
+.month-cell:active{transform:scale(0.9);filter:brightness(0.9);}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cal-dow{text-align:center;font-size:11px;color:var(--text-dim);font-weight:700;padding-bottom:4px;}
 .cal-day{
@@ -209,6 +227,45 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .color-swatch.selected{border-color:#fff;}
 .color-swatch:active{transform:scale(0.82);}
 .event-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+.idea-icon-picker{display:flex;gap:10px;flex-wrap:wrap;}
+.idea-icon-opt{
+  width:44px;height:44px;border-radius:50%;background:var(--bg-elev);border:2px solid transparent;
+  font-size:20px;display:flex;align-items:center;justify-content:center;
+  transition:transform .1s ease, filter .1s ease;
+}
+.idea-icon-opt.selected{border-color:var(--accent);background:var(--bg-card);}
+.idea-icon-opt:active{transform:scale(0.85);}
+
+.chip-row{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{
+  background:var(--bg-elev);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;
+  transition:transform .1s ease, filter .1s ease;
+}
+.chip.selected{background:var(--accent);color:#04140f;border-color:var(--accent);}
+.chip:active{transform:scale(0.92);}
+
+.star-row{display:flex;gap:6px;}
+.star-btn{font-size:24px;background:none;border:none;color:var(--text-dim);padding:2px;transition:transform .1s ease;}
+.star-btn.filled{color:var(--warn);}
+.star-btn:active{transform:scale(0.8);}
+
+.idea-board{display:flex;flex-direction:column;gap:20px;}
+.idea-group h4{
+  margin:0 0 10px;font-size:13px;color:var(--text-dim);text-transform:uppercase;
+  letter-spacing:.04em;font-weight:700;display:flex;justify-content:space-between;align-items:center;
+}
+.idea-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;}
+.idea-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:16px;
+  padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;
+  transition:transform .1s ease, filter .1s ease;
+}
+.idea-card:active{transform:scale(0.94);filter:brightness(0.9);}
+.idea-card .idea-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.idea-card .idea-title{font-size:12px;font-weight:700;line-height:1.2;}
+.idea-card .idea-cat{font-size:10px;color:var(--text-dim);}
 </style>
 </head>
 <body>
@@ -298,9 +355,9 @@ const STATE_KEY = "vida_state_v1";
 function defaultState(){
   return {
     calendar:{events:[]},
-    sport:{weeks:{}},
+    sport:{weeks:{}, futbol:{entries:[]}, estiramientos:{streak:0, lastDate:null, entries:[]}, caminar:{entries:[]}, correr:{entries:[]}},
     privado:{sessions:[]},
-    focus:{sessions:[], runningStart:null},
+    focus:{running:null, categories:{proyectos:{sessions:[]}, busqueda:{sessions:[]}, estudio:{sessions:[]}}},
     diario:{entries:[]},
     proyectos:{items:[]},
     recordatorios:{items:[]},
@@ -528,6 +585,8 @@ function openSection(id){
   if(renderer) renderer(viewSection);
 }
 function goHome(){
+  if(typeof deporteSubView !== "undefined") deporteSubView = null;
+  if(typeof focusSubView !== "undefined") focusSubView = null;
   topbarTitle.classList.remove("hidden");
   avatarBtn.classList.remove("hidden");
   viewSection.classList.add("hidden");
@@ -583,7 +642,10 @@ function renderCalendario(root){
   const calCard = el("div",{class:"card"});
   calCard.appendChild(el("div",{class:"cal-nav"},[
     el("button",{onclick:() => { calendarViewDate = new Date(year, month-1, 1); openSection("calendario"); }},[document.createTextNode("‹")]),
-    el("div",{class:"cal-month"},[document.createTextNode(calendarViewDate.toLocaleDateString("es-ES",{month:"long",year:"numeric"}))]),
+    el("button",{class:"cal-month-btn", onclick:() => openMonthYearModal()},[
+      document.createTextNode(calendarViewDate.toLocaleDateString("es-ES",{month:"long",year:"numeric"})),
+      el("span",{class:"cal-month-caret"},[document.createTextNode("▾")])
+    ]),
     el("button",{onclick:() => { calendarViewDate = new Date(year, month+1, 1); openSection("calendario"); }},[document.createTextNode("›")])
   ]));
 
@@ -612,6 +674,108 @@ function renderCalendario(root){
   root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;text-align:center;"},[
     document.createTextNode("Toca un día para ver sus eventos o añadir uno nuevo.")
   ]));
+
+  root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => openUpcomingEventsModal()},[
+    document.createTextNode("📌 Eventos próximos")
+  ]));
+}
+
+function openUpcomingEventsModal(){
+  const overlay = el("div",{class:"modal-overlay"});
+  const sheet = el("div",{class:"modal-sheet"});
+  overlay.appendChild(sheet);
+
+  function renderList(){
+    sheet.innerHTML = "";
+    sheet.appendChild(el("div",{class:"row"},[
+      el("h2",{style:"margin:0;"},[document.createTextNode("Eventos próximos")]),
+      el("span",{class:"icon-x", onclick:() => overlay.remove()},[document.createTextNode("✕")])
+    ]));
+    const todayStr = todayISO();
+    const upcoming = state.calendar.events
+      .filter(e => e.date >= todayStr)
+      .sort((a,b) => (a.date+","+ (a.time||"")).localeCompare(b.date+","+(b.time||"")));
+    const list = el("div",{class:"list"});
+    if(upcoming.length === 0){
+      list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("No tienes próximos eventos apuntados.")]));
+    } else {
+      upcoming.forEach(ev => {
+        let lastTap = 0;
+        const itemEl = el("div",{class:"item item-tap", onclick:() => {
+          const now = Date.now();
+          if(now - lastTap < 400){
+            lastTap = 0;
+            overlay.remove();
+            openEventModal(ev.date, ev, () => openSection("calendario"));
+          } else {
+            lastTap = now;
+          }
+        }},[
+          el("div",{class:"top"},[
+            el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+              el("span",{class:"event-color-dot", style:"background:"+colorHex(ev.color)}),
+              el("strong",{},[document.createTextNode(ev.title)])
+            ]),
+            el("span",{class:"icon-x", onclick:(e) => { e.stopPropagation(); confirmDeleteEvent(ev, renderList); }},[document.createTextNode("✕")])
+          ]),
+          el("div",{class:"meta"},[document.createTextNode(fmtDate(ev.date) + (ev.time ? " · " + ev.time : ""))])
+        ]);
+        list.appendChild(itemEl);
+      });
+    }
+    sheet.appendChild(list);
+    if(upcoming.length){
+      sheet.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:12px;text-align:center;"},[document.createTextNode("Toca dos veces un evento para editarlo.")]));
+    }
+  }
+  renderList();
+
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+const MONTH_NAMES_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+function openMonthYearModal(){
+  const overlay = el("div",{class:"modal-overlay"});
+  const sheet = el("div",{class:"modal-sheet"});
+  overlay.appendChild(sheet);
+
+  let pickerYear = calendarViewDate.getFullYear();
+  const selectedYear = calendarViewDate.getFullYear();
+  const selectedMonth = calendarViewDate.getMonth();
+
+  function renderPicker(){
+    sheet.innerHTML = "";
+    sheet.appendChild(el("div",{class:"row"},[
+      el("h2",{style:"margin:0;"},[document.createTextNode("Ir a mes")]),
+      el("span",{class:"icon-x", onclick:() => overlay.remove()},[document.createTextNode("✕")])
+    ]));
+    sheet.appendChild(el("div",{class:"cal-nav"},[
+      el("button",{onclick:() => { pickerYear -= 1; renderPicker(); }},[document.createTextNode("‹")]),
+      el("div",{class:"cal-month"},[document.createTextNode(String(pickerYear))]),
+      el("button",{onclick:() => { pickerYear += 1; renderPicker(); }},[document.createTextNode("›")])
+    ]));
+    const monthGrid = el("div",{class:"month-grid"});
+    MONTH_NAMES_SHORT.forEach((label, idx) => {
+      const isSelected = pickerYear === selectedYear && idx === selectedMonth;
+      monthGrid.appendChild(el("button",{class:"month-cell" + (isSelected ? " selected" : ""), onclick:() => {
+        calendarViewDate = new Date(pickerYear, idx, 1);
+        overlay.remove();
+        openSection("calendario");
+      }},[document.createTextNode(label)]));
+    });
+    sheet.appendChild(monthGrid);
+    sheet.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => {
+      calendarViewDate = new Date();
+      overlay.remove();
+      openSection("calendario");
+    }},[document.createTextNode("Ir a hoy")]));
+  }
+  renderPicker();
+
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function openDayModal(dateStr){
@@ -631,7 +795,16 @@ function openDayModal(dateStr){
       list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin eventos este día.")]));
     } else {
       dayEvents.forEach(ev => {
-        list.appendChild(el("div",{class:"item item-tap", onclick:() => openEventModal(dateStr, ev, renderDay)},[
+        let lastTap = 0;
+        const itemEl = el("div",{class:"item item-tap", onclick:() => {
+          const now = Date.now();
+          if(now - lastTap < 400){
+            lastTap = 0;
+            openEventModal(dateStr, ev, renderDay);
+          } else {
+            lastTap = now;
+          }
+        }},[
           el("div",{class:"top"},[
             el("div",{style:"display:flex;align-items:center;gap:8px;"},[
               el("span",{class:"event-color-dot", style:"background:"+colorHex(ev.color)}),
@@ -641,10 +814,14 @@ function openDayModal(dateStr){
           ]),
           el("div",{class:"meta"},[document.createTextNode((ev.time ? ev.time + " · " : "") + (ev.notify ? "🔔 Recordatorio activado" : "Sin recordatorio"))]),
           ev.notes ? el("div",{class:"meta"},[document.createTextNode(ev.notes)]) : null
-        ]));
+        ]);
+        list.appendChild(itemEl);
       });
     }
     sheet.appendChild(list);
+    if(dayEvents.length){
+      sheet.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:12px;text-align:center;"},[document.createTextNode("Toca dos veces un evento para editarlo.")]));
+    }
     sheet.appendChild(el("button",{class:"btn", style:"width:100%;", onclick:() => openEventModal(dateStr, null, renderDay)},[document.createTextNode("+ Evento")]));
   }
   renderDay();
@@ -744,74 +921,303 @@ function checkEventReminders(){
   // vez que se abría la app.
 }
 
-const STRETCHES = [
-  {id:"cuello", label:"Cuello"},
-  {id:"hombros", label:"Hombros"},
-  {id:"espalda", label:"Espalda baja"},
-  {id:"isquios", label:"Isquiotibiales"},
-  {id:"cuadriceps", label:"Cuádriceps"},
-  {id:"gemelos", label:"Gemelos"}
-];
+function ensureSportShape(){
+  if(!state.sport.futbol) state.sport.futbol = {entries:[]};
+  if(!state.sport.estiramientos) state.sport.estiramientos = {streak:0, lastDate:null, entries:[]};
+  if(!state.sport.estiramientos.entries) state.sport.estiramientos.entries = [];
+  if(!state.sport.caminar) state.sport.caminar = {entries:[]};
+  if(!state.sport.correr) state.sport.correr = {entries:[]};
+}
+
+function monthKey(dateStr){ return dateStr.slice(0,7); }
+
+function allDoneDatesSet(){
+  const set = new Set();
+  Object.values(state.sport.weeks || {}).forEach(wd => {
+    Object.entries(wd.days || {}).forEach(([d,v]) => { if(v) set.add(d); });
+  });
+  return set;
+}
+
+function sportEntryDates(){
+  return {
+    futbol: state.sport.futbol.entries.map(e => e.date),
+    estiramientos: state.sport.estiramientos.entries.slice(),
+    caminar: state.sport.caminar.entries.slice(),
+    correr: state.sport.correr.entries.slice()
+  };
+}
 
 function getWeekData(weekKey){
   if(!state.sport.weeks[weekKey]){
-    state.sport.weeks[weekKey] = {days:{}, stretches:{}};
+    state.sport.weeks[weekKey] = {days:{}};
   }
   return state.sport.weeks[weekKey];
 }
 
+const DEPORTE_TIPOS = [
+  {id:"futbol", icon:"⚽", label:"Fútbol", accent:"#5ee68f"},
+  {id:"estiramientos", icon:"🤸", label:"Estiramientos", accent:"#f5c542"},
+  {id:"caminar", icon:"🚶", label:"Caminar", accent:"#6bd6ff"},
+  {id:"correr", icon:"🏃", label:"Correr", accent:"#ff9f6b"}
+];
+const DEPORTE_STATS_TILE = {id:"estadisticas", icon:"📊", label:"Estadísticas", accent:"#c792ea"};
+
+let deporteSubView = null;
+
 function renderDeporte(root){
+  ensureSportShape();
+  if(deporteSubView){
+    renderDeporteSub(root, deporteSubView);
+    return;
+  }
+
   root.appendChild(sectionHeader("Deporte semanal"));
   const now = new Date();
   const weekKey = isoWeekKey(now);
   const wd = getWeekData(weekKey);
   const dates = weekDates(weekKey);
+  const todayStr = todayISO();
 
   const sportCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("¿Hiciste deporte esta semana?")])]);
   const chips = el("div",{class:"week-days"});
   const labels = ["L","M","X","J","V","S","D"];
   dates.forEach((d,i) => {
     const done = !!wd.days[d];
-    const chip = el("button",{class:"day-chip" + (done ? " done" : ""), onclick:() => {
+    const dayNum = parseInt(d.slice(8,10),10);
+    const classes = ["day-chip"];
+    if(done) classes.push("done");
+    if(d === todayStr) classes.push("today");
+    const chip = el("button",{class:classes.join(" "), onclick:() => {
       wd.days[d] = !wd.days[d];
       persist(); openSection("deporte");
-    }},[document.createTextNode(labels[i])]);
+    }},[
+      document.createTextNode(labels[i]),
+      el("span",{class:"day-chip-num"},[document.createTextNode(String(dayNum))])
+    ]);
     chips.appendChild(chip);
   });
   sportCard.appendChild(chips);
   root.appendChild(sportCard);
 
-  const stretchCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Estiramientos (esta semana)")])]);
+  root.appendChild(el("h3",{style:"margin:6px 0 -6px;color:var(--text-dim);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;"},[document.createTextNode("Deportes")]));
+  const typeGrid = el("div",{class:"grid", style:"padding:6px 0 0;"});
+  DEPORTE_TIPOS.concat([DEPORTE_STATS_TILE]).forEach(t => {
+    const tile = el("button",{class:"tile", style:`--tile-accent:${t.accent}`, onclick:() => { deporteSubView = t.id; openSection("deporte"); }},[
+      el("div",{class:"icon-circle"},[el("div",{class:"icon"},[document.createTextNode(t.icon)])]),
+      el("div",{class:"label"},[document.createTextNode(t.label)])
+    ]);
+    typeGrid.appendChild(tile);
+  });
+  root.appendChild(typeGrid);
+}
+
+function deporteSubHeader(title){
+  return el("div",{style:"display:flex;align-items:center;gap:10px;"},[
+    el("button",{class:"back-btn", onclick:() => { deporteSubView = null; openSection("deporte"); }},[document.createTextNode("‹")]),
+    el("h2",{style:"margin:0;font-size:20px;"},[document.createTextNode(title)])
+  ]);
+}
+
+function renderDeporteSub(root, id){
+  if(id === "futbol"){ renderFutbolSub(root); return; }
+  if(id === "estiramientos"){ renderEstiramientosSub(root); return; }
+  if(id === "caminar"){ renderCaminarSub(root, "caminar", "Caminar"); return; }
+  if(id === "correr"){ renderCaminarSub(root, "correr", "Correr"); return; }
+  if(id === "estadisticas"){ renderEstadisticasSub(root); return; }
+}
+
+const FUTBOL_PARTIDOS = ["1","2","3","4 o más"];
+const FUTBOL_TIPOS = ["IF7","Equipo","Pachanga con gente"];
+const FUTBOL_TIEMPOS = ["1 hora","2 horas","Más de 2 horas"];
+
+function renderFutbolSub(root){
+  root.appendChild(deporteSubHeader("Fútbol"));
+
+  const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Nuevo partido")])]);
+  const dateInput = el("input",{type:"date"}); dateInput.value = todayISO();
+  const partidosSelect = el("select",{}, FUTBOL_PARTIDOS.map(v => el("option",{value:v},[document.createTextNode(v)])));
+  const tipoSelect = el("select",{}, FUTBOL_TIPOS.map(v => el("option",{value:v},[document.createTextNode(v)])));
+  const tiempoSelect = el("select",{}, FUTBOL_TIEMPOS.map(v => el("option",{value:v},[document.createTextNode(v)])));
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Fecha")]),dateInput]));
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Número de partidos")]),partidosSelect]));
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Tipo de partido")]),tipoSelect]));
+  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Tiempo")]),tiempoSelect]));
+  formCard.appendChild(el("button",{class:"btn", onclick:() => {
+    state.sport.futbol.entries.push({
+      id:uid(), date:dateInput.value, partidos:partidosSelect.value,
+      tipo:tipoSelect.value, tiempo:tiempoSelect.value
+    });
+    persist();
+    openSection("deporte");
+  }},[document.createTextNode("Guardar")]));
+  root.appendChild(formCard);
+
+  const historyCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Historial")])]);
+  const entries = state.sport.futbol.entries.slice().sort((a,b) => b.date.localeCompare(a.date));
   const list = el("div",{class:"list"});
-  STRETCHES.forEach(st => {
-    const rec = wd.stretches[st.id] || {count:0, streak:0, lastDate:null};
-    const doneToday = rec.lastDate === todayISO();
-    list.appendChild(el("div",{class:"item"},[
-      el("div",{class:"top"},[
-        el("strong",{},[document.createTextNode(st.label)]),
-        el("div",{class:"streak"},[document.createTextNode("🔥 " + rec.streak)])
-      ]),
+  if(entries.length === 0){
+    list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay partidos registrados.")]));
+  } else {
+    entries.forEach(en => {
+      list.appendChild(el("div",{class:"item"},[
+        el("div",{class:"top"},[
+          el("strong",{},[document.createTextNode(fmtDate(en.date))]),
+          el("span",{class:"icon-x", onclick:() => {
+            state.sport.futbol.entries = state.sport.futbol.entries.filter(x => x.id !== en.id);
+            persist(); openSection("deporte");
+          }},[document.createTextNode("✕")])
+        ]),
+        el("div",{class:"meta"},[document.createTextNode(en.partidos + " partido(s) · " + en.tipo + " · " + en.tiempo)])
+      ]));
+    });
+  }
+  historyCard.appendChild(list);
+  root.appendChild(historyCard);
+}
+
+function renderEstiramientosSub(root){
+  root.appendChild(deporteSubHeader("Estiramientos"));
+  const rec = state.sport.estiramientos;
+  const doneToday = rec.lastDate === todayISO();
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("Racha")]),
+    el("div",{class:"streak", style:"font-size:26px;"},[document.createTextNode("🔥 " + rec.streak + (rec.streak === 1 ? " día" : " días"))]),
+    el("button",{class:"btn" + (doneToday ? " secondary" : ""), style:"width:100%;", onclick:() => {
+      const today = todayISO();
+      if(rec.lastDate === today){
+        rec.streak = Math.max(0, rec.streak - 1);
+        rec.lastDate = null;
+        rec.entries = rec.entries.filter(d => d !== today);
+      } else {
+        rec.streak += 1;
+        rec.lastDate = today;
+        if(!rec.entries.includes(today)) rec.entries.push(today);
+      }
+      persist(); openSection("deporte");
+    }},[document.createTextNode(doneToday ? "Hecho hoy ✓" : "Marcar hoy")])
+  ]));
+}
+
+function renderCaminarSub(root, key, title){
+  root.appendChild(deporteSubHeader(title));
+  const rec = state.sport[key];
+  const todayStr = todayISO();
+  const doneToday = rec.entries.includes(todayStr);
+  const thisWeekDates = weekDates(isoWeekKey(new Date()));
+  const weekCount = rec.entries.filter(d => thisWeekDates.includes(d)).length;
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("Esta semana")]),
+    el("div",{class:"meta"},[document.createTextNode("Veces esta semana: " + weekCount)]),
+    el("button",{class:"btn" + (doneToday ? " secondary" : ""), style:"width:100%;", onclick:() => {
+      if(doneToday){
+        rec.entries = rec.entries.filter(d => d !== todayStr);
+      } else {
+        rec.entries.push(todayStr);
+      }
+      state.sport[key] = rec;
+      persist(); openSection("deporte");
+    }},[document.createTextNode(doneToday ? "Hecho hoy ✓" : "Marcar hoy")])
+  ]));
+}
+
+function buildPieGradient(parts){
+  // parts: [{color, pct}] with pct in 0..100, sum ~100
+  let acc = 0;
+  const stops = [];
+  parts.forEach(p => {
+    if(p.pct <= 0) return;
+    const start = acc;
+    acc += p.pct;
+    stops.push(p.color + " " + start + "% " + acc + "%");
+  });
+  if(stops.length === 0) return "var(--bg-elev)";
+  return "conic-gradient(" + stops.join(", ") + ")";
+}
+
+function renderEstadisticasSub(root){
+  root.appendChild(deporteSubHeader("Estadísticas"));
+
+  const today = new Date();
+  const todayStr = todayISO();
+  const curMonthKey = monthKey(todayStr);
+  const dayOfMonth = today.getDate();
+  const prevMonthDate = new Date(today.getFullYear(), today.getMonth()-1, 1);
+  const prevMonthKey = monthKey(prevMonthDate.toISOString().slice(0,10));
+  const daysInPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth()+1, 0).getDate();
+
+  const doneSet = allDoneDatesSet();
+  const doneThisMonth = Array.from(doneSet).filter(d => monthKey(d) === curMonthKey).length;
+  const donePrevMonth = Array.from(doneSet).filter(d => monthKey(d) === prevMonthKey).length;
+  const withoutThisMonth = Math.max(0, dayOfMonth - doneThisMonth);
+  const pctThisMonth = dayOfMonth > 0 ? Math.round((doneThisMonth/dayOfMonth)*100) : 0;
+  const diff = doneThisMonth - donePrevMonth;
+  const diffLabel = diff === 0 ? "= igual que el mes anterior" : (diff > 0 ? ("▲ +" + diff + " día(s) más que el mes anterior") : ("▼ " + Math.abs(diff) + " día(s) menos que el mes anterior"));
+
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("Este mes")]),
+    el("div",{class:"row"},[document.createTextNode("Días con deporte"), el("strong",{},[document.createTextNode(String(doneThisMonth))])]),
+    el("div",{class:"row"},[document.createTextNode("Días sin deporte"), el("strong",{},[document.createTextNode(String(withoutThisMonth))])]),
+    el("div",{class:"row"},[document.createTextNode("Porcentaje de días activos"), el("strong",{},[document.createTextNode(pctThisMonth + "%")])])
+  ]));
+
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("Comparativa con el mes anterior")]),
+    el("div",{class:"row"},[document.createTextNode("Días con deporte (mes anterior)"), el("strong",{},[document.createTextNode(donePrevMonth + " / " + daysInPrevMonth)])]),
+    el("div",{class:"meta"},[document.createTextNode(diffLabel)])
+  ]));
+
+  const entryDates = sportEntryDates();
+  const countInMonth = (arr, mk) => arr.filter(d => monthKey(d) === mk).length;
+  const typeCountsThisMonth = DEPORTE_TIPOS.map(t => ({t, count: countInMonth(entryDates[t.id], curMonthKey)}));
+  const maxCount = Math.max(1, ...typeCountsThisMonth.map(x => x.count));
+  const tipoCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Por tipo este mes")])]);
+  const sortedByCount = typeCountsThisMonth.slice().sort((a,b) => b.count - a.count);
+  sortedByCount.forEach(({t,count}) => {
+    tipoCard.appendChild(el("div",{class:"field", style:"gap:4px;"},[
       el("div",{class:"row"},[
-        el("span",{class:"meta"},[document.createTextNode("Veces esta semana: " + rec.count)]),
-        el("button",{class:"btn" + (doneToday ? " secondary" : ""), onclick:() => {
-          const today = todayISO();
-          if(rec.lastDate === today){
-            rec.count = Math.max(0, rec.count - 1);
-            rec.streak = Math.max(0, rec.streak - 1);
-            rec.lastDate = null;
-          } else {
-            rec.count += 1;
-            rec.streak += 1;
-            rec.lastDate = today;
-          }
-          wd.stretches[st.id] = rec;
-          persist(); openSection("deporte");
-        }},[document.createTextNode(doneToday ? "Hecho hoy ✓" : "Marcar hoy")])
+        document.createTextNode(t.icon + " " + t.label),
+        el("strong",{},[document.createTextNode(String(count))])
+      ]),
+      el("div",{style:`height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;`},[
+        el("div",{style:`height:100%;border-radius:6px;background:${t.accent};width:${Math.round((count/maxCount)*100)}%;`})
       ])
     ]));
   });
-  stretchCard.appendChild(list);
-  root.appendChild(stretchCard);
+  if(sortedByCount.every(x => x.count === 0)){
+    tipoCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay actividad registrada este mes.")]));
+  }
+  root.appendChild(tipoCard);
+
+  const typeTotals = DEPORTE_TIPOS.map(t => ({t, count: entryDates[t.id].length}));
+  const grandTotal = typeTotals.reduce((a,x) => a+x.count, 0);
+  const totalCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Total y distribución")])]);
+  if(grandTotal === 0){
+    totalCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay datos suficientes para el diagrama.")]));
+  } else {
+    let acc = 0;
+    const pieParts = typeTotals.map(({t,count}) => {
+      const pct = (count/grandTotal)*100;
+      return {color:t.accent, pct};
+    });
+    const pieWrap = el("div",{style:"display:flex;align-items:center;gap:18px;flex-wrap:wrap;"});
+    pieWrap.appendChild(el("div",{style:`width:120px;height:120px;border-radius:50%;background:${buildPieGradient(pieParts)};flex-shrink:0;`}));
+    const legend = el("div",{class:"list", style:"flex:1;min-width:140px;"});
+    typeTotals.forEach(({t,count}) => {
+      const pct = grandTotal ? Math.round((count/grandTotal)*100) : 0;
+      legend.appendChild(el("div",{class:"row"},[
+        el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+          el("span",{class:"event-color-dot", style:"background:"+t.accent}),
+          document.createTextNode(t.label)
+        ]),
+        el("strong",{},[document.createTextNode(count + " · " + pct + "%")])
+      ]));
+    });
+    pieWrap.appendChild(legend);
+    totalCard.appendChild(pieWrap);
+    totalCard.appendChild(el("div",{class:"row"},[document.createTextNode("Total registrado"), el("strong",{},[document.createTextNode(String(grandTotal))])]));
+  }
+  root.appendChild(totalCard);
 }
 
 function renderPrivado(root){
@@ -881,62 +1287,238 @@ function renderPrivado(root){
 }
 
 let focusTicker = null;
-function renderFocus(root){
-  root.appendChild(sectionHeader("Focus"));
-  const running = !!state.focus.runningStart;
-  const timerCard = el("div",{class:"card",style:"align-items:center;"});
-  const timerDisplay = el("div",{class:"focus-timer"},[document.createTextNode("00:00:00")]);
-  timerCard.appendChild(timerDisplay);
-  const toggleBtn = el("button",{class:"btn" + (running ? " danger" : ""), style:"width:100%;", onclick:() => {
-    if(state.focus.runningStart){
-      const elapsedMin = Math.round((Date.now() - state.focus.runningStart)/60000);
-      state.focus.sessions.push({id:uid(), date:todayISO(), minutes:elapsedMin});
-      state.focus.runningStart = null;
-    } else {
-      state.focus.runningStart = Date.now();
-    }
-    persist();
-    openSection("focus");
-  }},[document.createTextNode(running ? "Detener y guardar" : "Empezar sesión")]);
-  timerCard.appendChild(toggleBtn);
-  root.appendChild(timerCard);
+let focusSubView = null;
 
-  function tick(){
-    if(!state.focus.runningStart) return;
-    const secs = Math.floor((Date.now() - state.focus.runningStart)/1000);
-    const h = String(Math.floor(secs/3600)).padStart(2,"0");
-    const m = String(Math.floor((secs%3600)/60)).padStart(2,"0");
-    const s = String(secs%60).padStart(2,"0");
-    timerDisplay.textContent = h+":"+m+":"+s;
+const FOCUS_CATS = [
+  {id:"proyectos", icon:"💡", label:"Proyectos", accent:"#6bd6ff"},
+  {id:"busqueda", icon:"🔍", label:"Búsqueda de empleo", accent:"#ff6b6b"},
+  {id:"estudio", icon:"📚", label:"Estudio", accent:"#c792ea"}
+];
+const FOCUS_STATS_TILE = {id:"estadisticas", icon:"📊", label:"Estadísticas", accent:"#f5c542"};
+const FOCUS_DURATIONS = [5,10,15,20,25,30,45,60,90,120];
+
+function ensureFocusShape(){
+  if(!state.focus.categories){
+    const legacySessions = Array.isArray(state.focus.sessions) ? state.focus.sessions : [];
+    state.focus.categories = {
+      proyectos:{sessions:legacySessions},
+      busqueda:{sessions:[]},
+      estudio:{sessions:[]}
+    };
+    state.focus.running = null;
+    delete state.focus.sessions;
+    delete state.focus.runningStart;
   }
-  if(focusTicker) clearInterval(focusTicker);
-  if(running){ tick(); focusTicker = setInterval(tick, 1000); }
+  FOCUS_CATS.forEach(c => { if(!state.focus.categories[c.id]) state.focus.categories[c.id] = {sessions:[]}; });
+  if(state.focus.running === undefined) state.focus.running = null;
+}
 
-  const todaySessions = state.focus.sessions.filter(s => s.date === todayISO());
-  const todayTotal = todaySessions.reduce((a,s) => a+s.minutes,0);
-  const summaryCard = el("div",{class:"card"},[
-    el("h3",{},[document.createTextNode("Hoy")]),
-    el("div",{class:"row"},[document.createTextNode("Tiempo acumulado"), el("strong",{},[document.createTextNode(todayTotal + " min")])])
+function formatMinutes(mins){
+  if(mins < 60) return mins + " min";
+  const h = Math.floor(mins/60), m = mins%60;
+  return h + "h" + (m ? " " + m + "min" : "");
+}
+
+function finishFocusSession(early){
+  const r = state.focus.running;
+  if(!r) return;
+  const minutes = early
+    ? Math.max(1, Math.round((Date.now()-r.startedAt)/60000))
+    : r.durationMin;
+  state.focus.categories[r.category].sessions.push({id:uid(), date:todayISO(), minutes});
+  state.focus.running = null;
+  persist();
+  openSection("focus");
+}
+
+function focusSubHeader(title){
+  return el("div",{style:"display:flex;align-items:center;gap:10px;"},[
+    el("button",{class:"back-btn", onclick:() => { focusSubView = null; openSection("focus"); }},[document.createTextNode("‹")]),
+    el("h2",{style:"margin:0;font-size:20px;"},[document.createTextNode(title)])
   ]);
-  root.appendChild(summaryCard);
+}
 
-  const historyCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Historial reciente")])]);
-  const recent = state.focus.sessions.slice().sort((a,b) => b.id.localeCompare(a.id)).slice(0,10);
+function renderFocus(root){
+  ensureFocusShape();
+  if(focusTicker){ clearInterval(focusTicker); focusTicker = null; }
+
+  if(focusSubView === "estadisticas"){ renderFocusEstadisticasSub(root); return; }
+  if(focusSubView){ renderFocusCategorySub(root, focusSubView); return; }
+
+  root.appendChild(sectionHeader("Focus"));
+
+  if(state.focus.running){
+    const cat = FOCUS_CATS.find(c => c.id === state.focus.running.category);
+    root.appendChild(el("div",{class:"card"},[
+      el("h3",{},[document.createTextNode("Cronómetro en marcha")]),
+      el("div",{class:"row"},[
+        document.createTextNode(cat.icon + " " + cat.label),
+        el("button",{class:"btn secondary", onclick:() => { focusSubView = cat.id; openSection("focus"); }},[document.createTextNode("Ver")])
+      ])
+    ]));
+  }
+
+  root.appendChild(el("h3",{style:"margin:6px 0 -6px;color:var(--text-dim);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;"},[document.createTextNode("Categorías")]));
+  const typeGrid = el("div",{class:"grid", style:"padding:6px 0 0;"});
+  FOCUS_CATS.concat([FOCUS_STATS_TILE]).forEach(t => {
+    const tile = el("button",{class:"tile", style:`--tile-accent:${t.accent}`, onclick:() => { focusSubView = t.id; openSection("focus"); }},[
+      el("div",{class:"icon-circle"},[el("div",{class:"icon"},[document.createTextNode(t.icon)])]),
+      el("div",{class:"label"},[document.createTextNode(t.label)])
+    ]);
+    typeGrid.appendChild(tile);
+  });
+  root.appendChild(typeGrid);
+}
+
+function renderFocusCategorySub(root, id){
+  const cat = FOCUS_CATS.find(c => c.id === id);
+  root.appendChild(focusSubHeader(cat.label));
+
+  const running = state.focus.running;
+  const isThisRunning = running && running.category === id;
+  const timerCard = el("div",{class:"card", style:"align-items:center;"});
+
+  if(running && !isThisRunning){
+    const otherCat = FOCUS_CATS.find(c => c.id === running.category);
+    timerCard.appendChild(el("p",{},[document.createTextNode("Ya tienes un cronómetro en marcha para " + otherCat.label + ".")]));
+    timerCard.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { focusSubView = running.category; openSection("focus"); }},[document.createTextNode("Ir al cronómetro")]));
+  } else if(isThisRunning){
+    const timerDisplay = el("div",{class:"focus-timer"},[document.createTextNode("00:00:00")]);
+    timerCard.appendChild(timerDisplay);
+    timerCard.appendChild(el("button",{class:"btn danger", style:"width:100%;", onclick:() => finishFocusSession(true)},[document.createTextNode("Detener y guardar")]));
+    root.appendChild(timerCard);
+
+    function tick(){
+      const r = state.focus.running;
+      if(!r){ if(focusTicker) clearInterval(focusTicker); return; }
+      const totalSecs = r.durationMin*60;
+      const elapsed = Math.floor((Date.now()-r.startedAt)/1000);
+      const remaining = totalSecs - elapsed;
+      if(remaining <= 0){
+        clearInterval(focusTicker);
+        finishFocusSession(false);
+        return;
+      }
+      const h = String(Math.floor(remaining/3600)).padStart(2,"0");
+      const m = String(Math.floor((remaining%3600)/60)).padStart(2,"0");
+      const s = String(remaining%60).padStart(2,"0");
+      timerDisplay.textContent = h+":"+m+":"+s;
+    }
+    tick();
+    focusTicker = setInterval(tick, 1000);
+  } else {
+    const durationSelect = el("select",{}, FOCUS_DURATIONS.map(m => el("option",{value:String(m)},[document.createTextNode(m + " min")])));
+    durationSelect.value = "25";
+    timerCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Duración")]),durationSelect]));
+    timerCard.appendChild(el("button",{class:"btn", style:"width:100%;", onclick:() => {
+      state.focus.running = {category:id, startedAt:Date.now(), durationMin:parseInt(durationSelect.value,10)};
+      persist();
+      openSection("focus");
+    }},[document.createTextNode("Empezar cuenta atrás")]));
+    root.appendChild(timerCard);
+  }
+
+  const sessions = state.focus.categories[id].sessions.slice().sort((a,b) => b.id.localeCompare(a.id));
+  const todayTotal = sessions.filter(s => s.date === todayISO()).reduce((a,s) => a+s.minutes,0);
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("Hoy")]),
+    el("div",{class:"row"},[document.createTextNode("Tiempo acumulado"), el("strong",{},[document.createTextNode(formatMinutes(todayTotal))])])
+  ]));
+
+  const historyCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Historial")])]);
   const list = el("div",{class:"list"});
-  if(recent.length === 0){
+  if(sessions.length === 0){
     list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin sesiones registradas todavía.")]));
   } else {
-    recent.forEach(s => {
+    sessions.slice(0,15).forEach(s => {
       list.appendChild(el("div",{class:"item"},[
         el("div",{class:"top"},[
           el("strong",{},[document.createTextNode(fmtDate(s.date))]),
-          el("span",{},[document.createTextNode(s.minutes + " min")])
-        ])
+          el("span",{class:"icon-x", onclick:() => {
+            state.focus.categories[id].sessions = state.focus.categories[id].sessions.filter(x => x.id !== s.id);
+            persist(); openSection("focus");
+          }},[document.createTextNode("✕")])
+        ]),
+        el("div",{class:"meta"},[document.createTextNode(formatMinutes(s.minutes))])
       ]));
     });
   }
   historyCard.appendChild(list);
   root.appendChild(historyCard);
+}
+
+function renderFocusEstadisticasSub(root){
+  root.appendChild(focusSubHeader("Estadísticas"));
+
+  const today = new Date();
+  const todayStr = todayISO();
+  const curMonthKey = monthKey(todayStr);
+  const prevMonthDate = new Date(today.getFullYear(), today.getMonth()-1, 1);
+  const prevMonthKey = monthKey(prevMonthDate.toISOString().slice(0,10));
+
+  function sumMinutes(sessions, mk){
+    return sessions.filter(s => monthKey(s.date) === mk).reduce((a,s) => a+s.minutes,0);
+  }
+  const perCatThisMonth = FOCUS_CATS.map(c => ({c, minutes: sumMinutes(state.focus.categories[c.id].sessions, curMonthKey)}));
+  const totalThisMonth = perCatThisMonth.reduce((a,x) => a+x.minutes,0);
+  const totalPrevMonth = FOCUS_CATS.reduce((a,c) => a+sumMinutes(state.focus.categories[c.id].sessions, prevMonthKey), 0);
+  const diff = totalThisMonth - totalPrevMonth;
+  const diffLabel = diff === 0 ? "= igual que el mes anterior" : (diff > 0 ? ("▲ +" + formatMinutes(diff) + " más que el mes anterior") : ("▼ " + formatMinutes(Math.abs(diff)) + " menos que el mes anterior"));
+
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("Este mes")]),
+    el("div",{class:"row"},[document.createTextNode("Tiempo total"), el("strong",{},[document.createTextNode(formatMinutes(totalThisMonth))])])
+  ]));
+
+  const maxCatMinutes = Math.max(1, ...perCatThisMonth.map(x => x.minutes));
+  const tipoCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Por categoría este mes")])]);
+  perCatThisMonth.slice().sort((a,b) => b.minutes-a.minutes).forEach(({c,minutes}) => {
+    tipoCard.appendChild(el("div",{class:"field", style:"gap:4px;"},[
+      el("div",{class:"row"},[
+        document.createTextNode(c.icon + " " + c.label),
+        el("strong",{},[document.createTextNode(formatMinutes(minutes))])
+      ]),
+      el("div",{style:"height:8px;border-radius:6px;background:var(--bg-elev);overflow:hidden;"},[
+        el("div",{style:`height:100%;border-radius:6px;background:${c.accent};width:${Math.round((minutes/maxCatMinutes)*100)}%;`})
+      ])
+    ]));
+  });
+  if(perCatThisMonth.every(x => x.minutes === 0)){
+    tipoCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay sesiones registradas este mes.")]));
+  }
+  root.appendChild(tipoCard);
+
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("Comparativa con el mes anterior")]),
+    el("div",{class:"row"},[document.createTextNode("Tiempo total (mes anterior)"), el("strong",{},[document.createTextNode(formatMinutes(totalPrevMonth))])]),
+    el("div",{class:"meta"},[document.createTextNode(diffLabel)])
+  ]));
+
+  const totals = FOCUS_CATS.map(c => ({c, minutes: state.focus.categories[c.id].sessions.reduce((a,s) => a+s.minutes,0)}));
+  const grandTotal = totals.reduce((a,x) => a+x.minutes,0);
+  const totalCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Total y distribución")])]);
+  if(grandTotal === 0){
+    totalCard.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay datos suficientes para el diagrama.")]));
+  } else {
+    const pieParts = totals.map(({c,minutes}) => ({color:c.accent, pct:(minutes/grandTotal)*100}));
+    const pieWrap = el("div",{style:"display:flex;align-items:center;gap:18px;flex-wrap:wrap;"});
+    pieWrap.appendChild(el("div",{style:`width:120px;height:120px;border-radius:50%;background:${buildPieGradient(pieParts)};flex-shrink:0;`}));
+    const legend = el("div",{class:"list", style:"flex:1;min-width:140px;"});
+    totals.forEach(({c,minutes}) => {
+      const pct = grandTotal ? Math.round((minutes/grandTotal)*100) : 0;
+      legend.appendChild(el("div",{class:"row"},[
+        el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+          el("span",{class:"event-color-dot", style:"background:"+c.accent}),
+          document.createTextNode(c.label)
+        ]),
+        el("strong",{},[document.createTextNode(formatMinutes(minutes) + " · " + pct + "%")])
+      ]));
+    });
+    pieWrap.appendChild(legend);
+    totalCard.appendChild(pieWrap);
+    totalCard.appendChild(el("div",{class:"row"},[document.createTextNode("Total registrado"), el("strong",{},[document.createTextNode(formatMinutes(grandTotal))])]));
+  }
+  root.appendChild(totalCard);
 }
 
 function renderDiario(root){
@@ -981,52 +1563,171 @@ function renderDiario(root){
   root.appendChild(listCard);
 }
 
+const IDEA_ICONS = ["💡","🚀","🎨","🛠️","📈","🌱","🎯","🧩","📚","💻","🏗️","🎬","🌍","📊","🔬","🎮"];
+const IDEA_CATS = [
+  {id:"gis", label:"GIS", accent:"#5ee6c8"},
+  {id:"web", label:"Web", accent:"#6bd6ff"},
+  {id:"negocio", label:"Negocio", accent:"#f5c542"},
+  {id:"personal", label:"Personal", accent:"#ff8fd6"},
+  {id:"estudio", label:"Estudio", accent:"#c792ea"},
+  {id:"otro", label:"Otro", accent:"#98989e"}
+];
+const IDEA_STATUSES = [
+  {id:"idea", label:"Idea", accent:"#6bd6ff"},
+  {id:"en-marcha", label:"En marcha", accent:"#5ee68f"},
+  {id:"pausado", label:"Pausado", accent:"#f5c542"},
+  {id:"terminado", label:"Terminado", accent:"#98989e"}
+];
+function ideaCatInfo(id){ return IDEA_CATS.find(c => c.id === id) || IDEA_CATS[IDEA_CATS.length-1]; }
+
 function renderProyectos(root){
   root.appendChild(sectionHeader("Proyectos e ideas"));
-  const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Nuevo proyecto o idea")])]);
-  const titleInput = el("input",{placeholder:"Título"});
-  const notesInput = el("textarea",{placeholder:"Descripción"});
-  const statusSelect = el("select",{},[
-    el("option",{value:"idea"},[document.createTextNode("Idea")]),
-    el("option",{value:"en-marcha"},[document.createTextNode("En marcha")]),
-    el("option",{value:"pausado"},[document.createTextNode("Pausado")]),
-    el("option",{value:"terminado"},[document.createTextNode("Terminado")])
-  ]);
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Título")]),titleInput]));
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Descripción")]),notesInput]));
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Estado")]),statusSelect]));
-  formCard.appendChild(el("button",{class:"btn", onclick:() => {
-    if(!titleInput.value.trim()) return;
-    state.proyectos.items.push({id:uid(), title:titleInput.value.trim(), notes:notesInput.value.trim(), status:statusSelect.value});
-    persist();
-    openSection("proyectos");
-  }},[document.createTextNode("Guardar")]));
-  root.appendChild(formCard);
+  root.appendChild(el("button",{class:"btn", style:"width:100%;", onclick:() => openIdeaModal(null)},[document.createTextNode("+ Nueva idea")]));
 
-  const statusLabels = {idea:"Idea", "en-marcha":"En marcha", pausado:"Pausado", terminado:"Terminado"};
-  const statusClass = {idea:"", "en-marcha":"", pausado:"warn", terminado:""};
-  const listCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Todos")])]);
-  const items = state.proyectos.items.slice().reverse();
-  const list = el("div",{class:"list"});
+  const items = state.proyectos.items;
   if(items.length === 0){
-    list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin proyectos todavía.")]));
-  } else {
-    items.forEach(it => {
-      list.appendChild(el("div",{class:"item"},[
-        el("div",{class:"top"},[
-          el("strong",{},[document.createTextNode(it.title)]),
-          el("span",{class:"icon-x", onclick:() => {
-            state.proyectos.items = state.proyectos.items.filter(x => x.id !== it.id);
-            persist(); openSection("proyectos");
-          }},[document.createTextNode("✕")])
-        ]),
-        el("span",{class:"pill " + (statusClass[it.status]||"")},[document.createTextNode(statusLabels[it.status]||it.status)]),
-        it.notes ? el("div",{class:"meta"},[document.createTextNode(it.notes)]) : null
+    root.appendChild(el("div",{class:"card"},[
+      el("div",{class:"empty-msg"},[document.createTextNode("Aún no tienes ideas guardadas. Toca \"+ Nueva idea\" para empezar.")])
+    ]));
+    return;
+  }
+
+  const board = el("div",{class:"idea-board"});
+  IDEA_STATUSES.forEach(st => {
+    const group = items.filter(it => it.status === st.id || (!it.status && st.id === "idea"));
+    if(group.length === 0) return;
+    const groupEl = el("div",{class:"idea-group"});
+    groupEl.appendChild(el("h4",{},[
+      document.createTextNode(st.label),
+      el("span",{},[document.createTextNode(String(group.length))])
+    ]));
+    const grid = el("div",{class:"idea-grid"});
+    group.slice().sort((a,b) => (b.priority||1)-(a.priority||1)).forEach(it => {
+      const cat = ideaCatInfo(it.category);
+      grid.appendChild(el("button",{class:"idea-card", onclick:() => openIdeaModal(it)},[
+        el("div",{class:"idea-icon", style:"background:"+cat.accent+"33;"},[document.createTextNode(it.icon||"💡")]),
+        el("div",{class:"idea-title"},[document.createTextNode(it.title)]),
+        el("div",{class:"idea-cat"},[document.createTextNode(cat.label + (it.priority ? " · " + "★".repeat(it.priority) : ""))])
       ]));
     });
+    groupEl.appendChild(grid);
+    board.appendChild(groupEl);
+  });
+  root.appendChild(board);
+}
+
+function openIdeaModal(existingItem){
+  const isEdit = !!existingItem;
+  const overlay = el("div",{class:"modal-overlay"});
+  const sheet = el("div",{class:"modal-sheet"});
+  overlay.appendChild(sheet);
+
+  let selectedIcon = isEdit ? (existingItem.icon || IDEA_ICONS[0]) : IDEA_ICONS[0];
+  let selectedCat = isEdit ? (existingItem.category || IDEA_CATS[0].id) : IDEA_CATS[0].id;
+  let selectedStatus = isEdit ? (existingItem.status || IDEA_STATUSES[0].id) : IDEA_STATUSES[0].id;
+  let priority = isEdit ? (existingItem.priority || 1) : 1;
+  let showNotes = isEdit && !!existingItem.notes;
+
+  const titleInput = el("input",{placeholder:"¿Cómo se llama la idea?"});
+  titleInput.value = isEdit ? existingItem.title : "";
+  const summaryInput = el("input",{placeholder:"Resumen en una línea (opcional)"});
+  summaryInput.value = isEdit ? (existingItem.summary||"") : "";
+  const notesInput = el("textarea",{placeholder:"Notas más largas (opcional)"});
+  notesInput.value = isEdit ? (existingItem.notes||"") : "";
+
+  function render(){
+    sheet.innerHTML = "";
+    sheet.appendChild(el("div",{class:"row"},[
+      el("h2",{style:"margin:0;"},[document.createTextNode(isEdit ? "Editar idea" : "Nueva idea")]),
+      el("span",{class:"icon-x", onclick:() => overlay.remove()},[document.createTextNode("✕")])
+    ]));
+
+    const iconGrid = el("div",{class:"idea-icon-picker"});
+    IDEA_ICONS.forEach(ic => {
+      iconGrid.appendChild(el("button",{class:"idea-icon-opt" + (ic===selectedIcon ? " selected" : ""), onclick:() => { selectedIcon = ic; render(); }},[document.createTextNode(ic)]));
+    });
+    sheet.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Icono")]),iconGrid]));
+
+    sheet.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Título")]),titleInput]));
+    sheet.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Resumen")]),summaryInput]));
+
+    const catRow = el("div",{class:"chip-row"});
+    IDEA_CATS.forEach(c => {
+      catRow.appendChild(el("button",{class:"chip" + (c.id===selectedCat ? " selected" : ""), onclick:() => { selectedCat = c.id; render(); }},[document.createTextNode(c.label)]));
+    });
+    sheet.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Categoría")]),catRow]));
+
+    const starRow = el("div",{class:"star-row"});
+    for(let i=1;i<=3;i++){
+      starRow.appendChild(el("button",{class:"star-btn" + (i<=priority ? " filled" : ""), onclick:() => { priority = i; render(); }},[document.createTextNode("★")]));
+    }
+    sheet.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Prioridad")]),starRow]));
+
+    const statusRow = el("div",{class:"chip-row"});
+    IDEA_STATUSES.forEach(s => {
+      statusRow.appendChild(el("button",{class:"chip" + (s.id===selectedStatus ? " selected" : ""), onclick:() => { selectedStatus = s.id; render(); }},[document.createTextNode(s.label)]));
+    });
+    sheet.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Estado")]),statusRow]));
+
+    if(showNotes){
+      sheet.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Notas")]),notesInput]));
+    } else {
+      sheet.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { showNotes = true; render(); }},[document.createTextNode("+ Añadir notas")]));
+    }
+
+    sheet.appendChild(el("div",{class:"row", style:"gap:10px;"},[
+      el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
+      el("button",{class:"btn", style:"flex:1;", onclick:() => {
+        if(!titleInput.value.trim()) return;
+        if(isEdit){
+          existingItem.title = titleInput.value.trim();
+          existingItem.summary = summaryInput.value.trim();
+          existingItem.notes = notesInput.value.trim();
+          existingItem.icon = selectedIcon;
+          existingItem.category = selectedCat;
+          existingItem.status = selectedStatus;
+          existingItem.priority = priority;
+        } else {
+          state.proyectos.items.push({
+            id:uid(), title:titleInput.value.trim(), summary:summaryInput.value.trim(), notes:notesInput.value.trim(),
+            icon:selectedIcon, category:selectedCat, status:selectedStatus, priority
+          });
+        }
+        persist();
+        overlay.remove();
+        openSection("proyectos");
+      }},[document.createTextNode("Guardar")])
+    ]));
+
+    if(isEdit){
+      sheet.appendChild(el("button",{class:"btn danger", style:"width:100%;", onclick:() => confirmDeleteIdea(existingItem)},[document.createTextNode("Eliminar idea")]));
+    }
   }
-  listCard.appendChild(list);
-  root.appendChild(listCard);
+  render();
+
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function confirmDeleteIdea(it){
+  const overlay = el("div",{class:"modal-overlay"});
+  const sheet = el("div",{class:"modal-sheet"},[
+    el("h2",{},[document.createTextNode("¿Eliminar idea?")]),
+    el("p",{},[document.createTextNode("“" + it.title + "” se eliminará permanentemente.")]),
+    el("div",{class:"row",style:"gap:10px;"},[
+      el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
+      el("button",{class:"btn danger", style:"flex:1;", onclick:() => {
+        state.proyectos.items = state.proyectos.items.filter(x => x.id !== it.id);
+        persist();
+        overlay.remove();
+        document.querySelectorAll(".modal-overlay").forEach(o => o.remove());
+        openSection("proyectos");
+      }},[document.createTextNode("Eliminar")])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function renderRecordatorios(root){
