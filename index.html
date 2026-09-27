@@ -1106,7 +1106,8 @@ function renderSincronizacion(root){
   const pushMsg = el("p",{id:"pushDebugMsg", style:"margin:8px 0 0 0;color:var(--text-dim);font-size:12px;white-space:pre-wrap;"},[]);
   const pushBtn = el("button",{class:"btn", onclick:() => {
     pushBtn.disabled = true;
-    enablePushNotifications(m => { pushMsg.textContent = m; }).then(ok => {
+    pushMsg.textContent = "";
+    enablePushNotifications(m => { pushMsg.textContent += (pushMsg.textContent ? "\n" : "") + m; }).then(ok => {
       pushBtn.disabled = false;
       if(ok) openSection("perfil");
     });
@@ -1160,20 +1161,26 @@ async function enablePushNotifications(log){
     return false;
   }
   try{
-    log("Paso 4: comprobando el registro del Service Worker...");
+    log("Paso 4: comprobando si ./sw.js se sirve correctamente...");
+    try{
+      const swFileRes = await fetch("./sw.js", {cache:"no-store"});
+      log("Paso 4: ./sw.js -> HTTP " + swFileRes.status + ", content-type: " + swFileRes.headers.get("content-type"));
+    }catch(fetchErr){
+      log("Paso 4: no se pudo ni descargar ./sw.js: " + fetchErr.name + " - " + fetchErr.message);
+    }
+    log("Paso 4: comprobando el registro del Service Worker (scope: " + location.href + ")...");
     let existingReg = await navigator.serviceWorker.getRegistration();
     if(!existingReg){
       log("Paso 4: no había registro, registrando sw.js ahora...");
       try{
         existingReg = await navigator.serviceWorker.register("./sw.js");
+        log("Paso 4: register() resolvió. scope=" + existingReg.scope + " installing=" + !!existingReg.installing + " waiting=" + !!existingReg.waiting + " active=" + !!existingReg.active);
       }catch(regErr){
         log("Paso 4 falló (register): " + regErr.name + " - " + regErr.message);
         return false;
       }
-    } else if(existingReg.installing){
-      log("Paso 4: hay un Service Worker instalándose, esperando...");
-    } else if(existingReg.waiting){
-      log("Paso 4: hay un Service Worker en espera (waiting), sin activar.");
+    } else {
+      log("Paso 4: ya había un registro. scope=" + existingReg.scope + " installing=" + !!existingReg.installing + " waiting=" + !!existingReg.waiting + " active=" + !!existingReg.active);
     }
     log("Paso 4: esperando a que quede activo (hasta 10s)...");
     const swReadyTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Tiempo de espera agotado tras 10s. Estado del registro: installing=" + !!existingReg.installing + " waiting=" + !!existingReg.waiting + " active=" + !!existingReg.active)), 10000));
