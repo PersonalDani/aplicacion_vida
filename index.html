@@ -1135,6 +1135,9 @@ function urlBase64ToUint8Array(base64String){
 
 async function enablePushNotifications(log){
   log = log || function(){};
+  if(swRegistrationError){
+    log("Aviso: el registro inicial del Service Worker había fallado con: " + swRegistrationError + ". Reintentando ahora...");
+  }
   log("Paso 1: comprobando soporte del navegador...");
   if(!("serviceWorker" in navigator)){
     log("Paso 1 falló: este navegador no soporta Service Worker.");
@@ -1157,8 +1160,23 @@ async function enablePushNotifications(log){
     return false;
   }
   try{
-    log("Paso 4: esperando al Service Worker...");
-    const swReadyTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Tiempo de espera agotado tras 10s")), 10000));
+    log("Paso 4: comprobando el registro del Service Worker...");
+    let existingReg = await navigator.serviceWorker.getRegistration();
+    if(!existingReg){
+      log("Paso 4: no había registro, registrando sw.js ahora...");
+      try{
+        existingReg = await navigator.serviceWorker.register("./sw.js");
+      }catch(regErr){
+        log("Paso 4 falló (register): " + regErr.name + " - " + regErr.message);
+        return false;
+      }
+    } else if(existingReg.installing){
+      log("Paso 4: hay un Service Worker instalándose, esperando...");
+    } else if(existingReg.waiting){
+      log("Paso 4: hay un Service Worker en espera (waiting), sin activar.");
+    }
+    log("Paso 4: esperando a que quede activo (hasta 10s)...");
+    const swReadyTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Tiempo de espera agotado tras 10s. Estado del registro: installing=" + !!existingReg.installing + " waiting=" + !!existingReg.waiting + " active=" + !!existingReg.active)), 10000));
     const reg = await Promise.race([navigator.serviceWorker.ready, swReadyTimeout]);
     if(!("pushManager" in reg)){
       log("Paso 4 falló: este dispositivo no soporta Push aquí. Asegúrate de abrir la app desde el icono de la pantalla de inicio, no desde Safari, y que sea iOS 16.4 o superior.");
@@ -1196,7 +1214,7 @@ async function enablePushNotifications(log){
     log("Notificaciones push activadas correctamente.");
     return true;
   }catch(e){
-    log("Paso 5 falló (subscribe): " + e.name + " - " + e.message);
+    log("Falló en Paso 4 o 5: " + e.name + " - " + e.message);
     return false;
   }
 }
@@ -1526,9 +1544,10 @@ function initPinScreen(){
   renderPinDots();
 }
 
+let swRegistrationError = null;
 function registerServiceWorker(){
   if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register("./sw.js").catch((e) => { swRegistrationError = e.name + " - " + e.message; console.error("Fallo registrando sw.js:", e); });
   }
 }
 
