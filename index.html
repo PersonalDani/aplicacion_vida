@@ -348,7 +348,7 @@ async function pushState(){
 }
 
 async function pullRemoteState(){
-  if(!syncConfig || !syncConfig.url || !syncConfig.anonKey) return null;
+  if(!syncConfig || !syncConfig.url || !syncConfig.anonKey) return {ok:false, row:null};
   try{
     const res = await fetch(syncConfig.url + "/rest/v1/vida_state?id=eq." + SYNC_ROW_ID + "&select=data,updated_at", {
       headers:{
@@ -356,21 +356,27 @@ async function pullRemoteState(){
         "Authorization": "Bearer " + syncConfig.anonKey
       }
     });
-    if(!res.ok) return null;
+    if(!res.ok) return {ok:false, row:null};
     const rows = await res.json();
-    return rows.length ? rows[0] : null;
+    return {ok:true, row: rows.length ? rows[0] : null};
   }catch(e){
-    return null;
+    return {ok:false, row:null};
   }
 }
 
 async function syncOnOpen(){
   if(!syncConfig || !syncConfig.url || !syncConfig.anonKey) return;
   setSyncStatus("syncing");
-  const remote = await pullRemoteState();
+  const result = await pullRemoteState();
+  if(!result.ok){
+    setSyncStatus("error");
+    return;
+  }
+  const remote = result.row;
   if(!remote){
-    setSyncStatus(remote === null ? "error" : "synced");
-    if(stateMeta.updatedAt) pushState();
+    if(!stateMeta.updatedAt) stateMeta.updatedAt = new Date().toISOString();
+    setSyncStatus("synced");
+    await pushState();
     return;
   }
   const remoteTime = remote.updated_at ? new Date(remote.updated_at).getTime() : 0;
