@@ -1124,14 +1124,31 @@ function urlBase64ToUint8Array(base64String){
 }
 
 async function enablePushNotifications(){
-  if(!("PushManager" in window) || !("Notification" in window)){
-    alert("Este navegador no soporta notificaciones push.");
+  if(!("serviceWorker" in navigator)){
+    alert("Paso 1 falló: este navegador no soporta Service Worker.");
     return;
   }
-  const perm = await Notification.requestPermission();
-  if(perm !== "granted") return;
+  if(!("Notification" in window)){
+    alert("Paso 2 falló: este navegador no soporta Notification.");
+    return;
+  }
+  let perm;
+  try{
+    perm = await Notification.requestPermission();
+  }catch(e){
+    alert("Paso 3 falló (pedir permiso): " + e.message);
+    return;
+  }
+  if(perm !== "granted"){
+    alert("No se concedió el permiso de notificaciones (estado: " + perm + ").");
+    return;
+  }
   try{
     const reg = await navigator.serviceWorker.ready;
+    if(!("pushManager" in reg)){
+      alert("Paso 4 falló: este dispositivo no soporta Push aquí. Asegúrate de abrir la app desde el icono de la pantalla de inicio, no desde Safari, y que sea iOS 16.4 o superior.");
+      return;
+    }
     let sub = await reg.pushManager.getSubscription();
     if(!sub){
       sub = await reg.pushManager.subscribe({
@@ -1140,7 +1157,7 @@ async function enablePushNotifications(){
       });
     }
     if(syncConfig && syncConfig.url && syncConfig.anonKey){
-      await fetch(syncConfig.url + "/rest/v1/vida_push_subscriptions?on_conflict=id", {
+      const res = await fetch(syncConfig.url + "/rest/v1/vida_push_subscriptions?on_conflict=id", {
         method:"POST",
         headers:{
           "apikey": syncConfig.anonKey,
@@ -1150,10 +1167,16 @@ async function enablePushNotifications(){
         },
         body: JSON.stringify({id:SYNC_ROW_ID, subscription: sub, updated_at: new Date().toISOString()})
       });
+      if(!res.ok){
+        const text = await res.text();
+        alert("Paso 6 falló: Supabase respondió " + res.status + " - " + text);
+        return;
+      }
     }
     safeSet(PUSH_SUBSCRIBED_KEY, true);
+    alert("Notificaciones push activadas correctamente.");
   }catch(e){
-    alert("No se pudo activar: " + e.message);
+    alert("Paso 5 falló (subscribe): " + e.name + " - " + e.message);
   }
 }
 
