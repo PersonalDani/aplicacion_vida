@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0b0d12">
+<meta name="theme-color" content="#121213">
 <title>Vida</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <style>
 :root{
-  --bg:#0b0d12;
-  --bg-elev:#12151c;
-  --bg-card:#161a23;
-  --border:#232836;
-  --text:#eef1f6;
-  --text-dim:#9aa3b5;
+  --bg:#121213;
+  --bg-elev:#1a1a1c;
+  --bg-card:#1f1f22;
+  --border:#2c2c30;
+  --text:#f2f2f3;
+  --text-dim:#98989e;
   --accent:#5ee6c8;
-  --accent-2:#7c8cf8;
+  --accent-2:#5ee6c8;
   --danger:#ff6b6b;
   --warn:#f5c542;
   --radius:18px;
@@ -39,40 +39,57 @@ body{
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   padding:18px 20px 8px;
+  min-height:56px;
 }
 .topbar h1{font-size:22px;margin:0;font-weight:700;letter-spacing:-0.02em;}
 .topbar .date{font-size:13px;color:var(--text-dim);}
 .back-btn{
+  width:40px;height:40px;flex-shrink:0;padding:0;
   background:var(--bg-card);border:1px solid var(--border);color:var(--text);
-  border-radius:12px;padding:8px 14px;font-size:14px;font-weight:600;
-  display:flex;align-items:center;gap:6px;
+  border-radius:50%;font-size:22px;font-weight:600;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s ease, background .1s ease;
 }
-.back-btn:active{transform:scale(0.94);background:var(--bg-elev);}
+.back-btn:active{transform:scale(0.88);background:var(--bg-elev);}
+
+.avatar-btn{
+  width:40px;height:40px;flex-shrink:0;padding:0;
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:50%;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  transition:transform .1s ease;
+}
+.avatar-btn:active{transform:scale(0.88);}
+.avatar-btn img{width:100%;height:100%;object-fit:cover;display:block;}
 
 .grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
-  padding:10px 20px 30px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px 8px;
+  padding:6px 18px 30px;
 }
 .tile{
+  background:none;border:none;padding:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;
+  position:relative;
+}
+.tile .icon-circle{
+  width:62px;height:62px;border-radius:50%;
   background:linear-gradient(160deg,var(--bg-card),var(--bg-elev));
   border:1px solid var(--border);
-  border-radius:22px;
-  aspect-ratio:1;
-  padding:10px 6px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;
   transition:transform .12s ease, box-shadow .12s ease;
 }
-.tile::after{
+.tile .icon-circle::after{
   content:"";position:absolute;inset:0;
-  background:radial-gradient(90px 70px at var(--mx,50%) var(--my,0%), rgba(255,255,255,0.08), transparent 70%);
+  background:radial-gradient(60px 50px at var(--mx,50%) var(--my,0%), rgba(255,255,255,0.1), transparent 70%);
   opacity:0;transition:opacity .2s ease;pointer-events:none;
 }
-.tile:active{transform:scale(0.92);box-shadow:0 0 0 2px var(--tile-accent,var(--accent)) inset;}
-.tile:active::after{opacity:1;}
-.tile .icon{font-size:34px;line-height:1;}
-.tile .icon-img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));}
-.tile .label{font-weight:700;font-size:12px;text-align:center;line-height:1.2;}
+.tile:active .icon-circle{transform:scale(0.86);box-shadow:0 0 0 2px var(--tile-accent,var(--accent));}
+.tile:active .icon-circle::after{opacity:1;}
+.tile .icon{font-size:26px;line-height:1;}
+.tile .icon-img{width:30px;height:30px;object-fit:contain;}
+.tile .label{font-weight:600;font-size:12px;text-align:center;line-height:1.2;color:var(--text);}
 
 .section{padding:16px 20px 40px;flex:1;display:flex;flex-direction:column;gap:16px;}
 .card{
@@ -205,12 +222,15 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 
 <div id="app" class="hidden">
   <div class="topbar">
-    <div>
+    <button class="back-btn hidden" id="back-btn" aria-label="Volver">‹</button>
+    <div id="topbar-title">
       <h1 id="home-title">Vida</h1>
       <div class="date" id="home-date"></div>
-      <div style="font-size:10px;color:var(--text-dim);opacity:0.6;">build v4</div>
     </div>
-    <button class="back-btn hidden" id="back-btn"><span>‹</span> Inicio</button>
+    <button class="avatar-btn" id="avatar-btn" aria-label="Perfil">
+      <img id="avatar-img" class="hidden" alt="">
+      <span id="avatar-placeholder">🧍</span>
+    </button>
   </div>
 
   <div id="view-home">
@@ -256,16 +276,16 @@ function safeSet(key, value){
 
 const SECTIONS = [
   {id:"calendario", icon:"📅", img:"icons/section-calendario.png", label:"Calendario", sub:"Eventos y avisos", accent:"#5ee6c8"},
-  {id:"deporte", icon:"🏋️", img:"icons/section-deporte.png", label:"Deporte semanal", sub:"Estiramientos y racha", accent:"#7c8cf8"},
+  {id:"deporte", icon:"🏋️", img:"icons/section-deporte.png", label:"Deporte semanal", sub:"Estiramientos y racha", accent:"#ffb26b"},
   {id:"privado", icon:"🎯", img:"icons/section-privado.png", label:"Seguimiento privado", sub:"Sesiones y tiempos", accent:"#f5c542"},
   {id:"focus", icon:"⏱️", label:"Focus", sub:"Estudio y trabajo", accent:"#ff9f6b"},
   {id:"diario", icon:"📓", img:"icons/section-diario.png", label:"Diario", sub:"Notas del día", accent:"#c792ea"},
   {id:"proyectos", icon:"💡", label:"Proyectos", sub:"Ideas y trabajo", accent:"#6bd6ff"},
   {id:"recordatorios", icon:"🔔", label:"Recordatorios", sub:"Para más tarde", accent:"#ff6b6b"},
   {id:"finanzas", icon:"💶", img:"icons/section-finanzas.png", label:"Finanzas", sub:"Ingresos y gastos", accent:"#5ee68f"},
-  {id:"perfil", icon:"🧍", label:"Perfil", sub:"Datos y peso", accent:"#ff8fd6"},
-  {id:"sueno", icon:"😴", label:"Sueño", sub:"Horas y calidad", accent:"#8fa6ff"}
+  {id:"sueno", icon:"😴", label:"Sueño", sub:"Horas y calidad", accent:"#ff8fd6"}
 ];
+const PERFIL_SECTION = {id:"perfil", icon:"🧍", label:"Perfil", sub:"Datos y peso", accent:"#5ee6c8"};
 
 const STATE_KEY = "vida_state_v1";
 function defaultState(){
@@ -278,7 +298,7 @@ function defaultState(){
     proyectos:{items:[]},
     recordatorios:{items:[]},
     finanzas:{transactions:[]},
-    perfil:{name:"", height:null, age:null, weights:[]},
+    perfil:{name:"", height:null, age:null, weights:[], photo:null},
     sueno:{logs:[]}
   };
 }
@@ -390,7 +410,7 @@ async function syncOnOpen(){
     stateMeta.lastSyncedAt = new Date().toISOString();
     safeSet(STATE_META_KEY, stateMeta);
     setSyncStatus("synced");
-    if(!appRoot.classList.contains("hidden")) renderHome();
+    if(!appRoot.classList.contains("hidden")){ renderHome(); renderAvatar(); }
   } else if(localTime > remoteTime){
     await pushState();
   } else {
@@ -461,25 +481,48 @@ function renderHome(){
         tile.style.setProperty("--my", ((ev.clientY-r.top)/r.height*100)+"%");
       }
     }, [
-      s.img
-        ? el("img",{class:"icon-img", src:s.img, alt:""})
-        : el("div",{class:"icon"},[document.createTextNode(s.icon)]),
+      el("div",{class:"icon-circle"},[
+        s.img
+          ? el("img",{class:"icon-img", src:s.img, alt:""})
+          : el("div",{class:"icon"},[document.createTextNode(s.icon)])
+      ]),
       el("div",{class:"label"},[document.createTextNode(s.label)])
     ]);
     homeGrid.appendChild(tile);
   });
 }
 
+const topbarTitle = document.getElementById("topbar-title");
+const avatarBtn = document.getElementById("avatar-btn");
+const avatarImg = document.getElementById("avatar-img");
+const avatarPlaceholder = document.getElementById("avatar-placeholder");
+
+function renderAvatar(){
+  if(state.perfil.photo){
+    avatarImg.src = state.perfil.photo;
+    avatarImg.classList.remove("hidden");
+    avatarPlaceholder.classList.add("hidden");
+  } else {
+    avatarImg.classList.add("hidden");
+    avatarPlaceholder.classList.remove("hidden");
+  }
+}
+avatarBtn.addEventListener("click", () => openSection("perfil"));
+
 function openSection(id){
   viewHome.classList.add("hidden");
   viewSection.classList.remove("hidden");
   backBtn.classList.remove("hidden");
+  topbarTitle.classList.add("hidden");
+  avatarBtn.classList.add("hidden");
   viewSection.innerHTML = "";
   viewSection.dataset.section = id;
   const renderer = RENDERERS[id];
   if(renderer) renderer(viewSection);
 }
 function goHome(){
+  topbarTitle.classList.remove("hidden");
+  avatarBtn.classList.remove("hidden");
   viewSection.classList.add("hidden");
   viewHome.classList.remove("hidden");
   backBtn.classList.add("hidden");
@@ -493,13 +536,17 @@ function sectionHeader(title){
 
 const EVENT_COLORS = [
   {id:"red", hex:"#ff6b6b"},
-  {id:"blue", hex:"#6bb3ff"},
-  {id:"pink", hex:"#ff8fd6"},
-  {id:"purple", hex:"#c792ea"},
-  {id:"green", hex:"#5ee68f"},
+  {id:"coral", hex:"#ff8a65"},
   {id:"orange", hex:"#ffb26b"},
   {id:"yellow", hex:"#f5e56b"},
-  {id:"teal", hex:"#5ee6c8"}
+  {id:"lime", hex:"#c6e86b"},
+  {id:"green", hex:"#5ee68f"},
+  {id:"teal", hex:"#5ee6c8"},
+  {id:"sky", hex:"#6bd6ff"},
+  {id:"blue", hex:"#6bb3ff"},
+  {id:"purple", hex:"#c792ea"},
+  {id:"magenta", hex:"#ff6bd6"},
+  {id:"pink", hex:"#ff8fd6"}
 ];
 function colorHex(id){
   const c = EVENT_COLORS.find(x => x.id === id);
@@ -542,7 +589,7 @@ function renderCalendario(root){
     const classes = ["cal-day"];
     if(ds === todayStr) classes.push("today");
     if(ds === calendarSelectedDate) classes.push("selected");
-    const cell = el("div",{class:classes.join(" "), onclick:() => { calendarSelectedDate = ds; openSection("calendario"); }},[
+    const cell = el("div",{class:classes.join(" "), onclick:() => { calendarSelectedDate = ds; openDayModal(ds); }},[
       document.createTextNode(String(d))
     ]);
     if(dayEvents.length){
@@ -555,43 +602,57 @@ function renderCalendario(root){
   calCard.appendChild(grid);
   root.appendChild(calCard);
 
-  const dayCard = el("div",{class:"card"});
-  dayCard.appendChild(el("div",{class:"row"},[
-    el("h3",{style:"margin:0;"},[document.createTextNode(fmtDate(calendarSelectedDate))]),
-    el("button",{class:"btn", onclick:() => openEventModal(calendarSelectedDate)},[document.createTextNode("+ Evento")])
+  root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;text-align:center;"},[
+    document.createTextNode("Toca un día para ver sus eventos o añadir uno nuevo.")
   ]));
-  const dayEvents = eventsOnDate(calendarSelectedDate);
-  const list = el("div",{class:"list"});
-  if(dayEvents.length === 0){
-    list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin eventos este día.")]));
-  } else {
-    dayEvents.forEach(ev => {
-      list.appendChild(el("div",{class:"item"},[
-        el("div",{class:"top"},[
-          el("div",{style:"display:flex;align-items:center;gap:8px;"},[
-            el("span",{class:"event-color-dot", style:"background:"+colorHex(ev.color)}),
-            el("strong",{},[document.createTextNode(ev.title)])
-          ]),
-          el("span",{class:"icon-x", onclick:() => {
-            state.calendar.events = state.calendar.events.filter(x => x.id !== ev.id);
-            persist(); openSection("calendario");
-          }},[document.createTextNode("✕")])
-        ]),
-        el("div",{class:"meta"},[document.createTextNode((ev.time ? ev.time + " · " : "") + (ev.notify ? "🔔 Recordatorio activado" : "Sin recordatorio"))]),
-        ev.notes ? el("div",{class:"meta"},[document.createTextNode(ev.notes)]) : null
-      ]));
-    });
-  }
-  dayCard.appendChild(list);
-  root.appendChild(dayCard);
 }
 
-function openEventModal(dateStr){
+function openDayModal(dateStr){
   const overlay = el("div",{class:"modal-overlay"});
-  const titleInput = el("input",{placeholder:"¿Qué es el evento?"});
-  const timeInput = el("input",{type:"time"});
-  const notesInput = el("textarea",{placeholder:"Notas (opcional)"});
-  let selectedColor = EVENT_COLORS[0].id;
+  const sheet = el("div",{class:"modal-sheet"});
+  overlay.appendChild(sheet);
+
+  function renderDay(){
+    sheet.innerHTML = "";
+    sheet.appendChild(el("div",{class:"row"},[
+      el("h2",{style:"margin:0;text-transform:capitalize;"},[document.createTextNode(fmtDate(dateStr))]),
+      el("span",{class:"icon-x", onclick:() => overlay.remove()},[document.createTextNode("✕")])
+    ]));
+    const dayEvents = eventsOnDate(dateStr);
+    const list = el("div",{class:"list"});
+    if(dayEvents.length === 0){
+      list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Sin eventos este día.")]));
+    } else {
+      dayEvents.forEach(ev => {
+        list.appendChild(el("div",{class:"item", onclick:() => openEventModal(dateStr, ev, renderDay)},[
+          el("div",{class:"top"},[
+            el("div",{style:"display:flex;align-items:center;gap:8px;"},[
+              el("span",{class:"event-color-dot", style:"background:"+colorHex(ev.color)}),
+              el("strong",{},[document.createTextNode(ev.title)])
+            ]),
+            el("span",{class:"icon-x", onclick:(e) => { e.stopPropagation(); confirmDeleteEvent(ev, renderDay); }},[document.createTextNode("✕")])
+          ]),
+          el("div",{class:"meta"},[document.createTextNode((ev.time ? ev.time + " · " : "") + (ev.notify ? "🔔 Recordatorio activado" : "Sin recordatorio"))]),
+          ev.notes ? el("div",{class:"meta"},[document.createTextNode(ev.notes)]) : null
+        ]));
+      });
+    }
+    sheet.appendChild(list);
+    sheet.appendChild(el("button",{class:"btn", style:"width:100%;", onclick:() => openEventModal(dateStr, null, renderDay)},[document.createTextNode("+ Evento")]));
+  }
+  renderDay();
+
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function openEventModal(dateStr, existingEvent, onDone){
+  const isEdit = !!existingEvent;
+  const overlay = el("div",{class:"modal-overlay"});
+  const titleInput = el("input",{placeholder:"¿Qué es el evento?"}); titleInput.value = isEdit ? existingEvent.title : "";
+  const timeInput = el("input",{type:"time"}); timeInput.value = isEdit ? (existingEvent.time||"") : "";
+  const notesInput = el("textarea",{placeholder:"Notas (opcional)"}); notesInput.value = isEdit ? (existingEvent.notes||"") : "";
+  let selectedColor = isEdit ? existingEvent.color : EVENT_COLORS[0].id;
   const swatchRow = el("div",{class:"color-row"});
   EVENT_COLORS.forEach(c => {
     const sw = el("div",{class:"color-swatch" + (c.id===selectedColor ? " selected" : ""), style:"background:"+c.hex, onclick:() => {
@@ -601,9 +662,9 @@ function openEventModal(dateStr){
     }});
     swatchRow.appendChild(sw);
   });
-  const notifyInput = el("input",{type:"checkbox"});
+  const notifyInput = el("input",{type:"checkbox"}); notifyInput.checked = isEdit ? !!existingEvent.notify : false;
   const sheet = el("div",{class:"modal-sheet"},[
-    el("h2",{},[document.createTextNode("Nuevo evento")]),
+    el("h2",{},[document.createTextNode(isEdit ? "Editar evento" : "Nuevo evento")]),
     el("p",{},[document.createTextNode(fmtDate(dateStr))]),
     el("div",{class:"field"},[el("label",{},[document.createTextNode("Título")]),titleInput]),
     el("div",{class:"field"},[el("label",{},[document.createTextNode("Hora (opcional)")]),timeInput]),
@@ -620,18 +681,47 @@ function openEventModal(dateStr){
       el("button",{class:"btn", style:"flex:1;", onclick:() => {
         if(!titleInput.value.trim()) return;
         if(notifyInput.checked) requestNotifPermission();
-        state.calendar.events.push({
-          id:uid(), title:titleInput.value.trim(), date:dateStr,
-          time:timeInput.value, notes:notesInput.value.trim(),
-          notify:notifyInput.checked, color:selectedColor
-        });
+        if(isEdit){
+          existingEvent.title = titleInput.value.trim();
+          existingEvent.time = timeInput.value;
+          existingEvent.notes = notesInput.value.trim();
+          existingEvent.notify = notifyInput.checked;
+          existingEvent.color = selectedColor;
+        } else {
+          state.calendar.events.push({
+            id:uid(), title:titleInput.value.trim(), date:dateStr,
+            time:timeInput.value, notes:notesInput.value.trim(),
+            notify:notifyInput.checked, color:selectedColor
+          });
+        }
         persist();
         overlay.remove();
-        openSection("calendario");
+        if(onDone) onDone(); else openSection("calendario");
       }},[document.createTextNode("Guardar")])
     ])
   ]);
   overlay.appendChild(sheet);
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function confirmDeleteEvent(ev, onDone){
+  const overlay = el("div",{class:"modal-overlay"});
+  const sheet = el("div",{class:"modal-sheet"},[
+    el("h2",{},[document.createTextNode("¿Eliminar evento?")]),
+    el("p",{},[document.createTextNode("“" + ev.title + "” se eliminará permanentemente.")]),
+    el("div",{class:"row",style:"gap:10px;"},[
+      el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
+      el("button",{class:"btn danger", style:"flex:1;", onclick:() => {
+        state.calendar.events = state.calendar.events.filter(x => x.id !== ev.id);
+        persist();
+        overlay.remove();
+        if(onDone) onDone();
+      }},[document.createTextNode("Eliminar")])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);
 }
 
@@ -641,27 +731,10 @@ function requestNotifPermission(){
 }
 
 function checkEventReminders(){
-  return; //deshabilitado: recordatorios los envia el servidor
-  const now = new Date();
-  const nowDateStr = todayISO();
-  let changed = false;
-  state.calendar.events.forEach(ev => {
-    if(!ev.notify || ev.firedAt || ev.date !== nowDateStr || !ev.time) return;
-    const [h,m] = ev.time.split(":").map(Number);
-    const eventTime = new Date();
-    eventTime.setHours(h,m,0,0);
-    if(now >= eventTime){
-      ev.firedAt = new Date().toISOString();
-      changed = true;
-      const body = ev.notes || "Tienes un evento ahora";
-      if(navigator.serviceWorker && navigator.serviceWorker.ready){
-        navigator.serviceWorker.ready.then(reg => reg.showNotification(ev.title, {body, icon:"./icons/icon-192.png"}));
-      } else if("Notification" in window){
-        new Notification(ev.title, {body});
-      }
-    }
-  });
-  if(changed) persist();
+  // Deshabilitado: los recordatorios ahora los envía siempre el servidor
+  // (Edge Function send-reminders + tabla vida_sent_push), incluso con la
+  // app cerrada. Disparar también uno local aquí duplicaba el aviso cada
+  // vez que se abría la app.
 }
 
 const STRETCHES = [
@@ -1226,8 +1299,63 @@ async function enablePushNotifications(log){
   }
 }
 
+function compressPhotoFile(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("No se pudo leer la imagen"));
+      img.onload = () => {
+        const size = 320;
+        const canvas = document.createElement("canvas");
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const scale = Math.max(size/img.width, size/img.height);
+        const w = img.width*scale, h = img.height*scale;
+        ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function renderPerfil(root){
   root.appendChild(sectionHeader("Perfil"));
+
+  const photoCard = el("div",{class:"card", style:"align-items:center;"});
+  const photoPreview = el("div",{style:"width:96px;height:96px;border-radius:50%;overflow:hidden;background:var(--bg-elev);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:40px;align-self:center;"},[
+    state.perfil.photo
+      ? el("img",{src:state.perfil.photo, style:"width:100%;height:100%;object-fit:cover;"})
+      : document.createTextNode("🧍")
+  ]);
+  const photoStatus = el("p",{style:"margin:0;color:var(--danger);font-size:12px;text-align:center;"},[]);
+  const photoFileInput = el("input",{type:"file", accept:"image/*", class:"hidden"});
+  photoFileInput.addEventListener("change", async () => {
+    const file = photoFileInput.files && photoFileInput.files[0];
+    if(!file) return;
+    try{
+      state.perfil.photo = await compressPhotoFile(file);
+      persist();
+      renderAvatar();
+      openSection("perfil");
+    }catch(e){
+      photoStatus.textContent = "No se pudo procesar la foto.";
+    }
+  });
+  const photoBtnRow = el("div",{class:"row", style:"gap:10px;justify-content:center;"},[
+    el("button",{class:"btn secondary", onclick:() => photoFileInput.click()},[document.createTextNode(state.perfil.photo ? "Cambiar foto" : "Subir foto")]),
+    state.perfil.photo ? el("button",{class:"btn secondary", onclick:() => { state.perfil.photo = null; persist(); renderAvatar(); openSection("perfil"); }},[document.createTextNode("Quitar")]) : null
+  ]);
+  photoCard.appendChild(el("h3",{style:"align-self:flex-start;"},[document.createTextNode("Foto de perfil")]));
+  photoCard.appendChild(photoPreview);
+  photoCard.appendChild(photoFileInput);
+  photoCard.appendChild(photoBtnRow);
+  photoCard.appendChild(photoStatus);
+  root.appendChild(photoCard);
+
   renderSincronizacion(root);
   const p = state.perfil;
   const weights = p.weights;
@@ -1536,10 +1664,9 @@ function unlockApp(){
   pinScreen.classList.add("hidden");
   appRoot.classList.remove("hidden");
   renderHome();
+  renderAvatar();
   maybeShowSleepPrompt();
   syncOnOpen();
-  checkEventReminders();
-  setInterval(checkEventReminders, 30000);
 }
 
 function initPinScreen(){
