@@ -112,9 +112,6 @@ body{
 input,textarea,select{
   background:var(--bg-elev);border:1px solid var(--border);color:var(--text);
   border-radius:10px;padding:10px 12px;font-size:15px;width:100%;
-  min-width:0;max-width:100%;
-}
-input[type="date"],input[type="time"]{
   min-width:0;max-width:100%;box-sizing:border-box;
 }
 textarea{min-height:80px;resize:vertical;font-family:inherit;}
@@ -197,13 +194,14 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .switch input:checked + .slider{background:var(--accent);border-color:var(--accent);}
 .switch input:checked + .slider::before{transform:translateX(20px);}
 
-.cal-nav{display:flex;align-items:center;justify-content:space-between;}
-.cal-nav button{background:var(--bg-elev);border:1px solid var(--border);color:var(--text);border-radius:10px;width:36px;height:36px;font-size:18px;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.cal-nav button{background:var(--bg-elev);border:1px solid var(--border);color:var(--text);border-radius:10px;width:36px;height:36px;font-size:18px;flex-shrink:0;}
 .cal-nav button:active{transform:scale(0.92);}
 .cal-month{font-weight:700;font-size:16px;text-transform:capitalize;}
 .cal-month-btn{
   background:none;border:none;color:var(--text);font-weight:700;font-size:16px;
-  display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:10px;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:6px;padding:4px 8px;border-radius:10px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;
   transition:transform .1s ease, opacity .1s ease;
 }
 .cal-month-btn .cal-month-caret{font-size:11px;color:var(--text-dim);}
@@ -516,7 +514,10 @@ async function syncOnOpen(){
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+function localISO(date){
+  return date.getFullYear() + "-" + String(date.getMonth()+1).padStart(2,"0") + "-" + String(date.getDate()).padStart(2,"0");
+}
+function todayISO(){ return localISO(new Date()); }
 function fmtDate(d){
   const dt = new Date(d + "T00:00:00");
   return dt.toLocaleDateString("es-ES", {weekday:"short", day:"numeric", month:"short"});
@@ -539,7 +540,7 @@ function weekDates(weekKey){
   for(let i=0;i<7;i++){
     const d = new Date(monday.getTime());
     d.setDate(monday.getDate()+i);
-    days.push(d.toISOString().slice(0,10));
+    days.push(localISO(d));
   }
   return days;
 }
@@ -586,7 +587,15 @@ const PALETTES = [
   {id:"coral", label:"Coral", bg:"#151316", bgElev:"#1d1a1f", bgCard:"#242026", border:"#332e35", text:"#f6f2f0", textDim:"#a39aa0", accent:"#ff9166", accent2:"#ffc266", danger:"#ff5d73", warn:"#ffcf5c"},
   {id:"teal", label:"Teal", bg:"#121213", bgElev:"#1a1a1c", bgCard:"#1f1f22", border:"#2c2c30", text:"#f2f2f3", textDim:"#98989e", accent:"#5ee6c8", accent2:"#5ee6c8", danger:"#ff6b6b", warn:"#f5c542"},
   {id:"violeta", label:"Violeta", bg:"#15131c", bgElev:"#1c1a24", bgCard:"#22202b", border:"#332f3d", text:"#f3f1f7", textDim:"#a19cb0", accent:"#a78bfa", accent2:"#c7b6ff", danger:"#ff6b81", warn:"#ffcf5c"},
-  {id:"bosque", label:"Bosque", bg:"#12140f", bgElev:"#191c15", bgCard:"#20241c", border:"#2e3327", text:"#f2f4ee", textDim:"#9aa190", accent:"#8bd17c", accent2:"#c9e26b", danger:"#ff6b6b", warn:"#e8c25c"}
+  {id:"bosque", label:"Bosque", bg:"#12140f", bgElev:"#191c15", bgCard:"#20241c", border:"#2e3327", text:"#f2f4ee", textDim:"#9aa190", accent:"#8bd17c", accent2:"#c9e26b", danger:"#ff6b6b", warn:"#e8c25c"},
+  {id:"rubi", label:"Rubí", bg:"#161213", bgElev:"#1e1a1b", bgCard:"#241f21", border:"#332b2d", text:"#f7f0f0", textDim:"#a89b9d", accent:"#ff5c72", accent2:"#ff8fa3", danger:"#ff3b30", warn:"#ffcf5c"},
+  {id:"azulnoche", label:"Azul noche", bg:"#0f1420", bgElev:"#161c2b", bgCard:"#1c2436", border:"#2a3448", text:"#eef2fa", textDim:"#8fa0bf", accent:"#5b9bff", accent2:"#8ecbff", danger:"#ff6b6b", warn:"#f5c542"},
+  {id:"oro", label:"Oro", bg:"#161310", bgElev:"#1e1a15", bgCard:"#26201a", border:"#3a3024", text:"#f8f2e8", textDim:"#b3a48c", accent:"#e8b34d", accent2:"#ffd27a", danger:"#ff6b6b", warn:"#ffdd6b"},
+  {id:"rosa", label:"Rosa", bg:"#161016", bgElev:"#1e1720", bgCard:"#261d29", border:"#3a2c3e", text:"#f7eef8", textDim:"#b39ab8", accent:"#ff7ad9", accent2:"#ffa3e6", danger:"#ff5d73", warn:"#ffcf5c"},
+  {id:"blanco", label:"Blanco", bg:"#f5f5f7", bgElev:"#ffffff", bgCard:"#ffffff", border:"#e0e0e5", text:"#1c1c1e", textDim:"#6b6b70", accent:"#ff7a45", accent2:"#ffb26b", danger:"#e0433a", warn:"#c98a00"},
+  {id:"cielo", label:"Cielo claro", bg:"#eef4fb", bgElev:"#ffffff", bgCard:"#ffffff", border:"#d7e3f0", text:"#12233d", textDim:"#5b7290", accent:"#2f7de1", accent2:"#6fa8ea", danger:"#e0433a", warn:"#c98a00"},
+  {id:"menta", label:"Menta clara", bg:"#eef8f4", bgElev:"#ffffff", bgCard:"#ffffff", border:"#d3e8de", text:"#0f2a20", textDim:"#5c8a76", accent:"#1fae82", accent2:"#5fcba6", danger:"#e0433a", warn:"#c98a00"},
+  {id:"arena", label:"Arena", bg:"#faf6ee", bgElev:"#ffffff", bgCard:"#ffffff", border:"#ece2cf", text:"#2b2013", textDim:"#8a7a5c", accent:"#d98a2b", accent2:"#e8b35e", danger:"#c9463a", warn:"#b3841f"}
 ];
 function paletteInfo(id){ return PALETTES.find(p => p.id === id) || PALETTES[0]; }
 function applyPalette(id){
@@ -692,6 +701,9 @@ function openSection(id){
 function goHome(){
   if(typeof deporteSubView !== "undefined") deporteSubView = null;
   if(typeof deporteWeekOffset !== "undefined") deporteWeekOffset = 0;
+  if(typeof caminarWeekOffset !== "undefined") caminarWeekOffset = 0;
+  if(typeof correrWeekOffset !== "undefined") correrWeekOffset = 0;
+  if(typeof estiramientosWeekOffset !== "undefined") estiramientosWeekOffset = 0;
   if(typeof focusSubView !== "undefined") focusSubView = null;
   if(typeof suenoEditingDate !== "undefined") suenoEditingDate = null;
   if(typeof perfilEditingWeight !== "undefined") perfilEditingWeight = null;
@@ -1238,49 +1250,81 @@ function renderFutbolSub(root){
   root.appendChild(historyCard);
 }
 
+let caminarWeekOffset = 0;
+let correrWeekOffset = 0;
+let estiramientosWeekOffset = 0;
+
+function computeStreakFromEntries(entries){
+  const set = new Set(entries);
+  let streak = 0;
+  const d = new Date();
+  while(set.has(localISO(d))){
+    streak++;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+function sportWeekPickerCard(rec, weekOffset, setWeekOffset){
+  const viewDate = new Date(Date.now() + weekOffset*7*86400000);
+  const weekKey = isoWeekKey(viewDate);
+  const dates = weekDates(weekKey);
+  const todayStr = todayISO();
+  const card = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Marcar días")])]);
+  card.appendChild(el("div",{class:"cal-nav"},[
+    el("button",{onclick:() => { setWeekOffset(weekOffset-1); openSection("deporte"); }},[document.createTextNode("‹")]),
+    el("div",{class:"cal-month", style:"font-size:13px;"},[document.createTextNode(shortDayMonth(dates[0]) + " – " + shortDayMonth(dates[6]))]),
+    el("button",{onclick:() => { setWeekOffset(weekOffset+1); openSection("deporte"); }},[document.createTextNode("›")])
+  ]));
+  const chips = el("div",{class:"week-days"});
+  const labels = ["L","M","X","J","V","S","D"];
+  dates.forEach((d,i) => {
+    const done = rec.entries.includes(d);
+    const dayNum = parseInt(d.slice(8,10),10);
+    const classes = ["day-chip"];
+    if(done) classes.push("done");
+    if(d === todayStr) classes.push("today");
+    chips.appendChild(el("button",{class:classes.join(" "), onclick:() => {
+      if(done) rec.entries = rec.entries.filter(x => x !== d);
+      else rec.entries.push(d);
+      persist(); openSection("deporte");
+    }},[
+      document.createTextNode(labels[i]),
+      el("span",{class:"day-chip-num"},[document.createTextNode(String(dayNum))])
+    ]));
+  });
+  card.appendChild(chips);
+  if(weekOffset !== 0){
+    card.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { setWeekOffset(0); openSection("deporte"); }},[document.createTextNode("Ir a esta semana")]));
+  }
+  card.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:12px;"},[document.createTextNode("Toca cualquier día (de esta semana o de otra) para marcarlo o desmarcarlo. Los demás días no se ven afectados.")]));
+  return card;
+}
+
 function renderEstiramientosSub(root){
   root.appendChild(deporteSubHeader("Estiramientos"));
   const rec = state.sport.estiramientos;
-  const doneToday = rec.lastDate === todayISO();
+  const streak = computeStreakFromEntries(rec.entries);
   root.appendChild(el("div",{class:"card"},[
     el("h3",{},[document.createTextNode("Racha")]),
-    el("div",{class:"streak", style:"font-size:26px;"},[document.createTextNode("🔥 " + rec.streak + (rec.streak === 1 ? " día" : " días"))]),
-    el("button",{class:"btn" + (doneToday ? " secondary" : ""), style:"width:100%;", onclick:() => {
-      const today = todayISO();
-      if(rec.lastDate === today){
-        rec.streak = Math.max(0, rec.streak - 1);
-        rec.lastDate = null;
-        rec.entries = rec.entries.filter(d => d !== today);
-      } else {
-        rec.streak += 1;
-        rec.lastDate = today;
-        if(!rec.entries.includes(today)) rec.entries.push(today);
-      }
-      persist(); openSection("deporte");
-    }},[document.createTextNode(doneToday ? "Hecho hoy ✓" : "Marcar hoy")])
+    el("div",{class:"streak", style:"font-size:26px;"},[document.createTextNode("🔥 " + streak + (streak === 1 ? " día" : " días"))])
   ]));
+  root.appendChild(sportWeekPickerCard(rec, estiramientosWeekOffset, (v) => { estiramientosWeekOffset = v; }));
 }
 
 function renderCaminarSub(root, key, title){
   root.appendChild(deporteSubHeader(title));
   const rec = state.sport[key];
-  const todayStr = todayISO();
-  const doneToday = rec.entries.includes(todayStr);
   const thisWeekDates = weekDates(isoWeekKey(new Date()));
   const weekCount = rec.entries.filter(d => thisWeekDates.includes(d)).length;
   root.appendChild(el("div",{class:"card"},[
     el("h3",{},[document.createTextNode("Esta semana")]),
-    el("div",{class:"meta"},[document.createTextNode("Veces esta semana: " + weekCount)]),
-    el("button",{class:"btn" + (doneToday ? " secondary" : ""), style:"width:100%;", onclick:() => {
-      if(doneToday){
-        rec.entries = rec.entries.filter(d => d !== todayStr);
-      } else {
-        rec.entries.push(todayStr);
-      }
-      state.sport[key] = rec;
-      persist(); openSection("deporte");
-    }},[document.createTextNode(doneToday ? "Hecho hoy ✓" : "Marcar hoy")])
+    el("div",{class:"meta"},[document.createTextNode("Veces esta semana: " + weekCount)])
   ]));
+  const weekOffset = key === "caminar" ? caminarWeekOffset : correrWeekOffset;
+  root.appendChild(sportWeekPickerCard(rec, weekOffset, (v) => {
+    if(key === "caminar") caminarWeekOffset = v; else correrWeekOffset = v;
+  }));
 }
 
 function buildPieGradient(parts){
@@ -1307,7 +1351,7 @@ function renderEstadisticasSub(root){
   const curMonthKey = monthKey(todayStr);
   const dayOfMonth = today.getDate();
   const prevMonthDate = new Date(today.getFullYear(), today.getMonth()-1, 1);
-  const prevMonthKey = monthKey(prevMonthDate.toISOString().slice(0,10));
+  const prevMonthKey = monthKey(localISO(prevMonthDate));
   const daysInPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth()+1, 0).getDate();
 
   const doneSet = allDoneDatesSet();
@@ -1628,7 +1672,7 @@ function renderFocusEstadisticasSub(root){
   const todayStr = todayISO();
   const curMonthKey = monthKey(todayStr);
   const prevMonthDate = new Date(today.getFullYear(), today.getMonth()-1, 1);
-  const prevMonthKey = monthKey(prevMonthDate.toISOString().slice(0,10));
+  const prevMonthKey = monthKey(localISO(prevMonthDate));
 
   function sumMinutes(sessions, mk){
     return sessions.filter(s => monthKey(s.date) === mk).reduce((a,s) => a+s.minutes,0);
@@ -2015,7 +2059,7 @@ function ensureRecurringFinanzas(){
       const daysInNext = new Date(nextMonthFirst.getFullYear(), nextMonthFirst.getMonth()+1, 0).getDate();
       const targetDay = Math.min(d.getDate(), daysInNext);
       const nextDate = new Date(nextMonthFirst.getFullYear(), nextMonthFirst.getMonth(), targetDay);
-      const nextDateStr = nextDate.toISOString().slice(0,10);
+      const nextDateStr = localISO(nextDate);
       if(nextDateStr > todayStr) break;
       let match = txs.find(t => t.seriesId === cur.seriesId && t.date === nextDateStr);
       if(!match){
@@ -2088,7 +2132,7 @@ function renderFinanzas(root){
   const todayStr = todayISO();
   const curMonthKey = monthKey(todayStr);
   const prevMonthDate = new Date(today.getFullYear(), today.getMonth()-1, 1);
-  const prevMonthKey = monthKey(prevMonthDate.toISOString().slice(0,10));
+  const prevMonthKey = monthKey(localISO(prevMonthDate));
   const expenseTxs = txs.filter(t => t.type === "gasto");
   const sumWhere = (fn) => txs.filter(fn).reduce((a,t) => a+t.amount, 0);
   const expenseThisMonth = sumWhere(t => t.type==="gasto" && monthKey(t.date)===curMonthKey);
