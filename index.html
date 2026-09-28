@@ -21,6 +21,7 @@
   --accent-2:#ffc266;
   --danger:#ff5d73;
   --warn:#ffcf5c;
+  --money-pos:#5ee68f;
   --radius:18px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -74,7 +75,7 @@ body{
   position:relative;
 }
 .tile .icon-circle{
-  width:min(84px,22vw);height:min(84px,22vw);border-radius:50%;
+  width:min(84px,22vw);height:min(84px,22vw);border-radius:24px;
   background:linear-gradient(160deg,var(--bg-card),var(--bg-elev));
   border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;
@@ -96,6 +97,7 @@ body{
 .card{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
   padding:16px;display:flex;flex-direction:column;gap:10px;
+  overflow:hidden;
 }
 .card h3{margin:0;font-size:15px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
@@ -110,6 +112,10 @@ body{
 input,textarea,select{
   background:var(--bg-elev);border:1px solid var(--border);color:var(--text);
   border-radius:10px;padding:10px 12px;font-size:15px;width:100%;
+  min-width:0;max-width:100%;
+}
+input[type="date"],input[type="time"]{
+  min-width:0;max-width:100%;box-sizing:border-box;
 }
 textarea{min-height:80px;resize:vertical;font-family:inherit;}
 label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
@@ -179,6 +185,7 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
   width:100%;max-width:520px;background:var(--bg-card);border:1px solid var(--border);
   border-radius:24px 24px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));
   display:flex;flex-direction:column;gap:12px;
+  overflow:hidden;box-sizing:border-box;
 }
 .modal-sheet h2{margin:0;font-size:19px;}
 .modal-sheet p{margin:0;color:var(--text-dim);font-size:13px;}
@@ -283,6 +290,13 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
   font-size:14px;font-weight:700;padding:0;transition:opacity .1s ease;
 }
 .diario-entry-head:active{opacity:0.6;}
+
+.palette-grid{display:flex;gap:16px;flex-wrap:wrap;}
+.palette-opt{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;padding:0;transition:transform .1s ease;}
+.palette-opt:active{transform:scale(0.9);}
+.palette-swatch{width:52px;height:52px;border-radius:50%;border:2px solid transparent;}
+.palette-opt.selected .palette-swatch{border-color:var(--text);}
+.palette-opt .palette-label{font-size:11px;color:var(--text-dim);}
 </style>
 </head>
 <body>
@@ -379,8 +393,8 @@ function defaultState(){
     proyectos:{items:[]},
     recordatorios:{items:[]},
     finanzas:{transactions:[]},
-    perfil:{name:"", height:null, age:null, weights:[], photo:null},
-    sueno:{logs:[]}
+    perfil:{name:"", height:null, age:null, weights:[], photo:null, palette:"coral"},
+    sueno:{logs:[], settings:{idealBed:"00:00", idealWake:"07:30"}}
   };
 }
 let state = safeGet(STATE_KEY, null);
@@ -568,6 +582,48 @@ function percentRing(pct, size, color){
   ]);
 }
 
+const PALETTES = [
+  {id:"coral", label:"Coral", bg:"#151316", bgElev:"#1d1a1f", bgCard:"#242026", border:"#332e35", text:"#f6f2f0", textDim:"#a39aa0", accent:"#ff9166", accent2:"#ffc266", danger:"#ff5d73", warn:"#ffcf5c"},
+  {id:"teal", label:"Teal", bg:"#121213", bgElev:"#1a1a1c", bgCard:"#1f1f22", border:"#2c2c30", text:"#f2f2f3", textDim:"#98989e", accent:"#5ee6c8", accent2:"#5ee6c8", danger:"#ff6b6b", warn:"#f5c542"},
+  {id:"violeta", label:"Violeta", bg:"#15131c", bgElev:"#1c1a24", bgCard:"#22202b", border:"#332f3d", text:"#f3f1f7", textDim:"#a19cb0", accent:"#a78bfa", accent2:"#c7b6ff", danger:"#ff6b81", warn:"#ffcf5c"},
+  {id:"bosque", label:"Bosque", bg:"#12140f", bgElev:"#191c15", bgCard:"#20241c", border:"#2e3327", text:"#f2f4ee", textDim:"#9aa190", accent:"#8bd17c", accent2:"#c9e26b", danger:"#ff6b6b", warn:"#e8c25c"}
+];
+function paletteInfo(id){ return PALETTES.find(p => p.id === id) || PALETTES[0]; }
+function applyPalette(id){
+  const p = paletteInfo(id);
+  const root = document.documentElement.style;
+  root.setProperty("--bg", p.bg);
+  root.setProperty("--bg-elev", p.bgElev);
+  root.setProperty("--bg-card", p.bgCard);
+  root.setProperty("--border", p.border);
+  root.setProperty("--text", p.text);
+  root.setProperty("--text-dim", p.textDim);
+  root.setProperty("--accent", p.accent);
+  root.setProperty("--accent-2", p.accent2);
+  root.setProperty("--danger", p.danger);
+  root.setProperty("--warn", p.warn);
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if(themeMeta) themeMeta.setAttribute("content", p.bg);
+}
+
+function confirmDeleteGeneric(title, message, onConfirm){
+  const overlay = el("div",{class:"modal-overlay"});
+  const sheet = el("div",{class:"modal-sheet"},[
+    el("h2",{},[document.createTextNode(title)]),
+    el("p",{},[document.createTextNode(message)]),
+    el("div",{class:"row",style:"gap:10px;"},[
+      el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
+      el("button",{class:"btn danger", style:"flex:1;", onclick:() => {
+        overlay.remove();
+        onConfirm();
+      }},[document.createTextNode("Eliminar")])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 function deltaPill(diff, unitLabel){
   if(diff === 0) return el("span",{class:"pill"},[document.createTextNode("= igual")]);
   const up = diff > 0;
@@ -638,6 +694,7 @@ function goHome(){
   if(typeof deporteWeekOffset !== "undefined") deporteWeekOffset = 0;
   if(typeof focusSubView !== "undefined") focusSubView = null;
   if(typeof suenoEditingDate !== "undefined") suenoEditingDate = null;
+  if(typeof perfilEditingWeight !== "undefined") perfilEditingWeight = null;
   topbarTitle.classList.remove("hidden");
   avatarBtn.classList.remove("hidden");
   viewSection.classList.add("hidden");
@@ -1167,8 +1224,10 @@ function renderFutbolSub(root){
         el("div",{class:"top"},[
           el("strong",{},[document.createTextNode(fmtDate(en.date))]),
           el("span",{class:"icon-x", onclick:() => {
-            state.sport.futbol.entries = state.sport.futbol.entries.filter(x => x.id !== en.id);
-            persist(); openSection("deporte");
+            confirmDeleteGeneric("¿Eliminar partido?", "El partido del " + fmtDate(en.date) + " se eliminará permanentemente.", () => {
+              state.sport.futbol.entries = state.sport.futbol.entries.filter(x => x.id !== en.id);
+              persist(); openSection("deporte");
+            });
           }},[document.createTextNode("✕")])
         ]),
         el("div",{class:"meta"},[document.createTextNode(en.partidos + " partido(s) · " + en.tipo + " · " + en.tiempo)])
@@ -1380,8 +1439,10 @@ function renderPrivado(root){
       el("div",{class:"top"},[
         el("strong",{},[document.createTextNode(fmtDate(s.date))]),
         el("span",{class:"icon-x", onclick:() => {
-          state.privado.sessions = state.privado.sessions.filter(x => x.id !== s.id);
-          persist(); openSection("privado");
+          confirmDeleteGeneric("¿Eliminar sesión?", "La sesión del " + fmtDate(s.date) + " se eliminará permanentemente.", () => {
+            state.privado.sessions = state.privado.sessions.filter(x => x.id !== s.id);
+            persist(); openSection("privado");
+          });
         }},[document.createTextNode("✕")])
       ]),
       el("div",{class:"meta"},[document.createTextNode(s.minutes + " min" + (diffLabel ? " · " + diffLabel : ""))]),
@@ -1544,8 +1605,10 @@ function renderFocusCategorySub(root, id){
         el("div",{class:"top"},[
           el("strong",{},[document.createTextNode(fmtDate(s.date))]),
           el("span",{class:"icon-x", onclick:() => {
-            state.focus.categories[id].sessions = state.focus.categories[id].sessions.filter(x => x.id !== s.id);
-            persist(); openSection("focus");
+            confirmDeleteGeneric("¿Eliminar sesión?", "La sesión del " + fmtDate(s.date) + " se eliminará permanentemente.", () => {
+              state.focus.categories[id].sessions = state.focus.categories[id].sessions.filter(x => x.id !== s.id);
+              persist(); openSection("focus");
+            });
           }},[document.createTextNode("✕")])
         ]),
         el("div",{class:"meta"},[document.createTextNode(formatMinutes(s.minutes))])
@@ -1687,8 +1750,10 @@ function renderDiario(root){
         if(isOpen){
           entryEl.appendChild(el("div",{class:"meta", style:"margin-top:8px;white-space:pre-wrap;"},[document.createTextNode(en.text)]));
           entryEl.appendChild(el("button",{class:"btn secondary", style:"width:100%;margin-top:8px;", onclick:() => {
-            state.diario.entries = state.diario.entries.filter(x => x.id !== en.id);
-            persist(); openSection("diario");
+            confirmDeleteGeneric("¿Eliminar entrada?", "Esta entrada del diario se eliminará permanentemente.", () => {
+              state.diario.entries = state.diario.entries.filter(x => x.id !== en.id);
+              persist(); openSection("diario");
+            });
           }},[document.createTextNode("Eliminar entrada")]));
         }
         body.appendChild(entryEl);
@@ -1903,8 +1968,10 @@ function renderRecordatorios(root){
         el("div",{class:"top"},[
           el("strong",{},[document.createTextNode(r.text)]),
           el("span",{class:"icon-x", onclick:() => {
-            state.recordatorios.items = state.recordatorios.items.filter(x => x.id !== r.id);
-            persist(); openSection("recordatorios");
+            confirmDeleteGeneric("¿Eliminar recordatorio?", "\"" + r.text + "\" se eliminará permanentemente.", () => {
+              state.recordatorios.items = state.recordatorios.items.filter(x => x.id !== r.id);
+              persist(); openSection("recordatorios");
+            });
           }},[document.createTextNode("✕")])
         ]),
         (r.when || r.time) ? el("div",{class:"meta"},[document.createTextNode((r.when ? fmtDate(r.when) : "") + (r.time ? " · " + r.time : "") + (r.notify ? " · 🔔" : ""))]) : null,
@@ -1975,7 +2042,7 @@ function renderFinanzas(root){
 
   root.appendChild(el("div",{class:"card"},[
     el("h3",{},[document.createTextNode("Resumen")]),
-    el("div",{class:"row"},[document.createTextNode("Ingresos"), el("strong",{style:"color:var(--accent);"},[document.createTextNode(income.toFixed(2) + " €")])]),
+    el("div",{class:"row"},[document.createTextNode("Ingresos"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(income.toFixed(2) + " €")])]),
     el("div",{class:"row"},[document.createTextNode("Gastos"), el("strong",{style:"color:var(--danger);"},[document.createTextNode(expense.toFixed(2) + " €")])]),
     el("div",{class:"row"},[document.createTextNode("Balance"), el("strong",{},[document.createTextNode(balance.toFixed(2) + " €")])])
   ]));
@@ -2048,7 +2115,7 @@ function renderFinanzas(root){
   root.appendChild(collapsibleCard("Ahorro y gasto", finanzasStatsOpen, "ahorro", (body) => {
     const ahorroTotal = sumWhere(t => t.category === "Ahorro");
     const gastoTotal = sumWhere(t => t.type === "gasto" && t.category !== "Ahorro");
-    body.appendChild(el("div",{class:"row"},[document.createTextNode("Total ahorrado"), el("strong",{style:"color:var(--accent);"},[document.createTextNode(ahorroTotal.toFixed(2) + " €")])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Total ahorrado"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(ahorroTotal.toFixed(2) + " €")])]));
     body.appendChild(el("div",{class:"row"},[document.createTextNode("Total gastado (sin ahorro)"), el("strong",{style:"color:var(--danger);"},[document.createTextNode(gastoTotal.toFixed(2) + " €")])]));
   }, "finanzas"));
 
@@ -2095,6 +2162,24 @@ function renderFinanzas(root){
     body.appendChild(pieWrap);
   }, "finanzas"));
 
+  root.appendChild(collapsibleCard("Media y extremos", finanzasStatsOpen, "mediaextremos", (body) => {
+    if(expenseTxs.length === 0){
+      body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay gastos suficientes.")]));
+      return;
+    }
+    const avgExpense = expense / expenseTxs.length;
+    const biggestExpense = expenseTxs.slice().sort((a,b) => b.amount-a.amount)[0];
+    const incomeTxs = txs.filter(t => t.type === "ingreso");
+    const savingsRate = income > 0 ? ((income-expense)/income)*100 : 0;
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Gasto medio por movimiento"), el("strong",{},[document.createTextNode(avgExpense.toFixed(2) + " €")])]));
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Mayor gasto"), el("strong",{style:"color:var(--danger);"},[document.createTextNode(biggestExpense.amount.toFixed(2) + " € · " + biggestExpense.category)])]));
+    if(incomeTxs.length > 0){
+      const biggestIncome = incomeTxs.slice().sort((a,b) => b.amount-a.amount)[0];
+      body.appendChild(el("div",{class:"row"},[document.createTextNode("Mayor ingreso"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(biggestIncome.amount.toFixed(2) + " €")])]));
+    }
+    body.appendChild(el("div",{class:"row"},[document.createTextNode("Tasa de ahorro sobre ingresos"), el("strong",{style: savingsRate >= 0 ? "color:var(--money-pos);" : "color:var(--danger);"},[document.createTextNode(savingsRate.toFixed(0) + "%")])]));
+  }, "finanzas"));
+
   const listCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Movimientos")])]);
   const sorted = txs.slice().sort((a,b) => b.date.localeCompare(a.date));
   const list = el("div",{class:"list"});
@@ -2109,8 +2194,10 @@ function renderFinanzas(root){
             el("strong",{},[document.createTextNode(t.category)])
           ]),
           el("span",{class:"icon-x", onclick:() => {
-            state.finanzas.transactions = state.finanzas.transactions.filter(x => x.id !== t.id);
-            persist(); openSection("finanzas");
+            confirmDeleteGeneric("¿Eliminar movimiento?", "El movimiento de " + t.category + " (" + t.amount.toFixed(2) + " €) se eliminará permanentemente.", () => {
+              state.finanzas.transactions = state.finanzas.transactions.filter(x => x.id !== t.id);
+              persist(); openSection("finanzas");
+            });
           }},[document.createTextNode("✕")])
         ]),
         el("div",{class:"meta"},[document.createTextNode(fmtDate(t.date) + " · " + (t.type === "ingreso" ? "+" : "-") + t.amount.toFixed(2) + " €" + (t.recurring ? " · 🔁" : ""))])
@@ -2318,8 +2405,27 @@ function compressPhotoFile(file){
   });
 }
 
+let perfilEditingWeight = null;
+
 function renderPerfil(root){
   root.appendChild(sectionHeader("Perfil"));
+
+  const paletteCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Apariencia")])]);
+  const paletteGrid = el("div",{class:"palette-grid"});
+  const currentPalette = state.perfil.palette || "coral";
+  PALETTES.forEach(p => {
+    paletteGrid.appendChild(el("button",{class:"palette-opt" + (p.id===currentPalette ? " selected" : ""), onclick:() => {
+      state.perfil.palette = p.id;
+      applyPalette(p.id);
+      persist();
+      openSection("perfil");
+    }},[
+      el("div",{class:"palette-swatch", style:`background:conic-gradient(${p.bg} 0% 50%, ${p.accent} 50% 100%);`}),
+      el("div",{class:"palette-label"},[document.createTextNode(p.label)])
+    ]));
+  });
+  paletteCard.appendChild(paletteGrid);
+  root.appendChild(paletteCard);
 
   const photoCard = el("div",{class:"card", style:"align-items:center;"});
   const photoPreview = el("div",{style:"width:96px;height:96px;border-radius:50%;overflow:hidden;background:var(--bg-elev);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:40px;align-self:center;"},[
@@ -2382,19 +2488,34 @@ function renderPerfil(root){
   }},[document.createTextNode("Guardar datos")]));
   root.appendChild(dataCard);
 
-  const weightFormCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Registrar peso")])]);
+  const weightFormCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode(perfilEditingWeight ? "Editar peso" : "Registrar peso")])]);
   const weightInput = el("input",{type:"number", step:"0.1", placeholder:"Peso en kg"});
-  const weightDateInput = el("input",{type:"date"}); weightDateInput.value = todayISO();
+  const weightDateInput = el("input",{type:"date"});
+  if(perfilEditingWeight){
+    weightInput.value = perfilEditingWeight.weight;
+    weightDateInput.value = perfilEditingWeight.date;
+  } else {
+    weightDateInput.value = todayISO();
+  }
   weightFormCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Peso (kg)")]),weightInput]));
   weightFormCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Fecha")]),weightDateInput]));
   weightFormCard.appendChild(el("button",{class:"btn", onclick:() => {
     const w = parseFloat(weightInput.value);
     if(!w || w <= 0) return;
-    p.weights.push({date:weightDateInput.value, weight:w});
+    if(perfilEditingWeight){
+      perfilEditingWeight.date = weightDateInput.value;
+      perfilEditingWeight.weight = w;
+      perfilEditingWeight = null;
+    } else {
+      p.weights.push({date:weightDateInput.value, weight:w});
+    }
     p.weights.sort((a,b) => a.date.localeCompare(b.date));
     persist();
     openSection("perfil");
-  }},[document.createTextNode("Guardar peso")]));
+  }},[document.createTextNode(perfilEditingWeight ? "Guardar cambios" : "Guardar peso")]));
+  if(perfilEditingWeight){
+    weightFormCard.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { perfilEditingWeight = null; openSection("perfil"); }},[document.createTextNode("Cancelar edición")]));
+  }
   root.appendChild(weightFormCard);
 
   const imcCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("IMC")])]);
@@ -2437,7 +2558,17 @@ function renderPerfil(root){
       list.appendChild(el("div",{class:"item"},[
         el("div",{class:"top"},[
           el("strong",{},[document.createTextNode(fmtDate(w.date))]),
-          el("span",{},[document.createTextNode(w.weight.toFixed(1) + " kg")])
+          el("div",{style:"display:flex;align-items:center;gap:6px;"},[
+            el("span",{},[document.createTextNode(w.weight.toFixed(1) + " kg")]),
+            el("span",{class:"icon-x", onclick:() => { perfilEditingWeight = w; openSection("perfil"); }},[document.createTextNode("✎")]),
+            el("span",{class:"icon-x", onclick:() => {
+              confirmDeleteGeneric("¿Eliminar registro?", "El peso de " + fmtDate(w.date) + " se eliminará permanentemente.", () => {
+                p.weights = p.weights.filter(x => x !== w);
+                if(perfilEditingWeight === w) perfilEditingWeight = null;
+                persist(); openSection("perfil");
+              });
+            }},[document.createTextNode("✕")])
+          ])
         ]),
         diffLabel ? el("div",{class:"meta"},[document.createTextNode(diffLabel)]) : null
       ]));
@@ -2462,15 +2593,24 @@ function timeToMinutes(t){
   const [h,m] = t.split(":").map(Number);
   return h*60+m;
 }
+function ensureSuenoShape(){
+  if(!state.sueno.settings) state.sueno.settings = {idealBed:"00:00", idealWake:"07:30"};
+  if(!state.sueno.settings.idealBed) state.sueno.settings.idealBed = "00:00";
+  if(!state.sueno.settings.idealWake) state.sueno.settings.idealWake = "07:30";
+}
 function computeSleepScore(bed, wake, hours){
+  ensureSuenoShape();
+  const idealBedMins = timeToMinutes(state.sueno.settings.idealBed);
+  const idealWakeMins = timeToMinutes(state.sueno.settings.idealWake);
   const bedMins = timeToMinutes(bed);
   const wakeMins = timeToMinutes(wake);
+  const idealBedAdj = idealBedMins < 12*60 ? idealBedMins + 1440 : idealBedMins;
   const bedAdj = bedMins < 12*60 ? bedMins + 1440 : bedMins;
-  const bedDiff = Math.abs(bedAdj - (23*60+30));
+  const bedDiff = Math.abs(bedAdj - idealBedAdj);
   const bedScore = Math.max(0, 2.5 - (bedDiff/180)*2.5);
-  const wakeDiff = Math.abs(wakeMins - (7*60+30));
+  const wakeDiff = Math.abs(wakeMins - idealWakeMins);
   const wakeScore = Math.max(0, 2.5 - (wakeDiff/180)*2.5);
-  const hoursScore = Math.max(0, 5 - Math.abs(hours-8)*1.2);
+  const hoursScore = Math.max(0, 5 - 0.3*Math.pow(hours-8, 2));
   const total = Math.min(10, Math.max(0, hoursScore + bedScore + wakeScore));
   return Math.round(total*10)/10;
 }
@@ -2497,6 +2637,23 @@ let suenoStatsOpen = {};
 
 function renderSueno(root){
   root.appendChild(sectionHeader("Sueño"));
+  ensureSuenoShape();
+
+  root.appendChild(collapsibleCard("Ajustes de horario", suenoStatsOpen, "ajustes", (body) => {
+    const idealBedInput = el("input",{type:"time"}); idealBedInput.value = state.sueno.settings.idealBed;
+    const idealWakeInput = el("input",{type:"time"}); idealWakeInput.value = state.sueno.settings.idealWake;
+    body.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:12px;"},[document.createTextNode("La nota de sueño usa estas horas como tu referencia ideal de ahora en adelante. Puedes cambiarlas cuando quieras, por ejemplo cuando vuelvas a trabajar.")]));
+    body.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Hora ideal de acostarte")]),idealBedInput]));
+    body.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Hora ideal de despertar")]),idealWakeInput]));
+    body.appendChild(el("button",{class:"btn", onclick:() => {
+      if(!idealBedInput.value || !idealWakeInput.value) return;
+      state.sueno.settings.idealBed = idealBedInput.value;
+      state.sueno.settings.idealWake = idealWakeInput.value;
+      persist();
+      openSection("sueno");
+    }},[document.createTextNode("Guardar ajustes")]));
+  }, "sueno"));
+
   const logs = state.sueno.logs.slice().sort((a,b) => b.date.localeCompare(a.date));
   const editingLog = suenoEditingDate ? state.sueno.logs.find(l => l.date === suenoEditingDate) : todaySleepLog();
   const formDate = suenoEditingDate || todayISO();
@@ -2624,9 +2781,11 @@ function renderSueno(root){
             el("span",{class:"pill " + cat.cls},[document.createTextNode(cat.label)]),
             el("span",{class:"icon-x", onclick:() => { suenoEditingDate = l.date; openSection("sueno"); }},[document.createTextNode("✎")]),
             el("span",{class:"icon-x", onclick:() => {
-              state.sueno.logs = state.sueno.logs.filter(x => x.date !== l.date);
-              if(suenoEditingDate === l.date) suenoEditingDate = null;
-              persist(); openSection("sueno");
+              confirmDeleteGeneric("¿Eliminar registro de sueño?", "El registro del " + fmtDate(l.date) + " se eliminará permanentemente.", () => {
+                state.sueno.logs = state.sueno.logs.filter(x => x.date !== l.date);
+                if(suenoEditingDate === l.date) suenoEditingDate = null;
+                persist(); openSection("sueno");
+              });
             }},[document.createTextNode("✕")])
           ])
         ]),
@@ -2798,6 +2957,12 @@ function init(){
   initPinScreen();
   registerServiceWorker();
   initHapticFeedback();
+  try{
+    document.addEventListener("touchstart", function(){}, {passive:true});
+  }catch(e){}
+  if(state && state.perfil && state.perfil.palette){
+    applyPalette(state.perfil.palette);
+  }
 }
 
 const recoveryScreen = document.getElementById("recovery-screen");
