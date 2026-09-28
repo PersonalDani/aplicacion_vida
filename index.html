@@ -93,14 +93,14 @@ body{
 .tile .icon-img{width:38px;height:38px;object-fit:contain;}
 .tile .label{font-weight:600;font-size:13px;text-align:center;line-height:1.2;color:var(--text);}
 
-.section{padding:16px 20px 40px;flex:1;display:flex;flex-direction:column;gap:16px;}
+.section{padding:16px 20px 40px;flex:1;display:flex;flex-direction:column;gap:16px;min-width:0;}
 .card{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
   padding:16px;display:flex;flex-direction:column;gap:10px;
-  overflow:hidden;
+  overflow:hidden;min-width:0;box-sizing:border-box;
 }
 .card h3{margin:0;font-size:15px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;}
 .btn{
   background:var(--accent);color:#04140f;border:none;border-radius:12px;
   padding:12px 16px;font-size:15px;font-weight:700;
@@ -114,9 +114,12 @@ input,textarea,select{
   border-radius:10px;padding:10px 12px;font-size:15px;width:100%;
   min-width:0;max-width:100%;box-sizing:border-box;
 }
+input[type="date"],input[type="time"]{
+  width:1px;min-width:100%;
+}
 textarea{min-height:80px;resize:vertical;font-family:inherit;}
 label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
-.field{display:flex;flex-direction:column;gap:2px;}
+.field{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .list{display:flex;flex-direction:column;gap:8px;}
 .item{
   background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;
@@ -289,12 +292,7 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 }
 .diario-entry-head:active{opacity:0.6;}
 
-.palette-grid{display:flex;gap:16px;flex-wrap:wrap;}
-.palette-opt{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;padding:0;transition:transform .1s ease;}
-.palette-opt:active{transform:scale(0.9);}
-.palette-swatch{width:52px;height:52px;border-radius:50%;border:2px solid transparent;}
-.palette-opt.selected .palette-swatch{border-color:var(--text);}
-.palette-opt .palette-label{font-size:11px;color:var(--text-dim);}
+.palette-swatch{width:52px;height:52px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -595,7 +593,11 @@ const PALETTES = [
   {id:"blanco", label:"Blanco", bg:"#f5f5f7", bgElev:"#ffffff", bgCard:"#ffffff", border:"#e0e0e5", text:"#1c1c1e", textDim:"#6b6b70", accent:"#ff7a45", accent2:"#ffb26b", danger:"#e0433a", warn:"#c98a00"},
   {id:"cielo", label:"Cielo claro", bg:"#eef4fb", bgElev:"#ffffff", bgCard:"#ffffff", border:"#d7e3f0", text:"#12233d", textDim:"#5b7290", accent:"#2f7de1", accent2:"#6fa8ea", danger:"#e0433a", warn:"#c98a00"},
   {id:"menta", label:"Menta clara", bg:"#eef8f4", bgElev:"#ffffff", bgCard:"#ffffff", border:"#d3e8de", text:"#0f2a20", textDim:"#5c8a76", accent:"#1fae82", accent2:"#5fcba6", danger:"#e0433a", warn:"#c98a00"},
-  {id:"arena", label:"Arena", bg:"#faf6ee", bgElev:"#ffffff", bgCard:"#ffffff", border:"#ece2cf", text:"#2b2013", textDim:"#8a7a5c", accent:"#d98a2b", accent2:"#e8b35e", danger:"#c9463a", warn:"#b3841f"}
+  {id:"arena", label:"Arena", bg:"#faf6ee", bgElev:"#ffffff", bgCard:"#ffffff", border:"#ece2cf", text:"#2b2013", textDim:"#8a7a5c", accent:"#d98a2b", accent2:"#e8b35e", danger:"#c9463a", warn:"#b3841f"},
+  {id:"grafito", label:"Grafito", bg:"#131316", bgElev:"#1a1a1e", bgCard:"#202024", border:"#2f2f34", text:"#f1f1f3", textDim:"#9a9aa0", accent:"#8ea3c9", accent2:"#b7c8e3", danger:"#ff6b6b", warn:"#f5c542"},
+  {id:"vino", label:"Vino", bg:"#160f12", bgElev:"#1e1519", bgCard:"#261a1f", border:"#3a252b", text:"#f7eef0", textDim:"#b3939c", accent:"#c9456b", accent2:"#e37a97", danger:"#ff5d73", warn:"#ffcf5c"},
+  {id:"lavanda", label:"Lavanda clara", bg:"#f5f1fb", bgElev:"#ffffff", bgCard:"#ffffff", border:"#e3daf3", text:"#241c33", textDim:"#7a6f94", accent:"#8b5cf6", accent2:"#b39dfa", danger:"#e0433a", warn:"#c98a00"},
+  {id:"durazno", label:"Durazno claro", bg:"#fdf3ee", bgElev:"#ffffff", bgCard:"#ffffff", border:"#f3ded2", text:"#33231a", textDim:"#93705c", accent:"#e8703f", accent2:"#f0996b", danger:"#c9463a", warn:"#b3841f"}
 ];
 function paletteInfo(id){ return PALETTES.find(p => p.id === id) || PALETTES[0]; }
 function applyPalette(id){
@@ -2455,20 +2457,21 @@ function renderPerfil(root){
   root.appendChild(sectionHeader("Perfil"));
 
   const paletteCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Apariencia")])]);
-  const paletteGrid = el("div",{class:"palette-grid"});
   const currentPalette = state.perfil.palette || "coral";
-  PALETTES.forEach(p => {
-    paletteGrid.appendChild(el("button",{class:"palette-opt" + (p.id===currentPalette ? " selected" : ""), onclick:() => {
-      state.perfil.palette = p.id;
-      applyPalette(p.id);
-      persist();
-      openSection("perfil");
-    }},[
-      el("div",{class:"palette-swatch", style:`background:conic-gradient(${p.bg} 0% 50%, ${p.accent} 50% 100%);`}),
-      el("div",{class:"palette-label"},[document.createTextNode(p.label)])
-    ]));
+  const currentInfo = paletteInfo(currentPalette);
+  const paletteSelect = el("select",{}, PALETTES.map(p => el("option",{value:p.id},[document.createTextNode(p.label)])));
+  paletteSelect.value = currentPalette;
+  const palettePreview = el("div",{class:"palette-swatch", style:`background:conic-gradient(${currentInfo.bg} 0% 50%, ${currentInfo.accent} 50% 100%);`});
+  paletteSelect.addEventListener("change", () => {
+    state.perfil.palette = paletteSelect.value;
+    applyPalette(paletteSelect.value);
+    persist();
+    openSection("perfil");
   });
-  paletteCard.appendChild(paletteGrid);
+  paletteCard.appendChild(el("div",{style:"display:flex;align-items:center;gap:14px;"},[
+    palettePreview,
+    el("div",{class:"field", style:"flex:1;"},[el("label",{},[document.createTextNode("Paleta de color")]),paletteSelect])
+  ]));
   root.appendChild(paletteCard);
 
   const photoCard = el("div",{class:"card", style:"align-items:center;"});
