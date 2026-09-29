@@ -1535,6 +1535,21 @@ function formatMinutes(mins){
   return h + "h" + (m ? " " + m + "min" : "");
 }
 
+async function notifyFocusDone(catLabel, minutes){
+  try{ if(navigator.vibrate) navigator.vibrate([250,120,250,120,500]); }catch(e){}
+  try{
+    if(!("Notification" in window) || Notification.permission !== "granted") return;
+    const title = "Focus terminado";
+    const body = catLabel + " · " + minutes + " min completados";
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      const reg = await navigator.serviceWorker.ready;
+      reg.showNotification(title, {body, icon:"./icons/icon-192.png", badge:"./icons/icon-192.png"});
+    } else {
+      new Notification(title, {body});
+    }
+  }catch(e){}
+}
+
 function finishFocusSession(early){
   const r = state.focus.running;
   if(!r) return;
@@ -1542,6 +1557,10 @@ function finishFocusSession(early){
     ? Math.max(1, Math.round((Date.now()-r.startedAt)/60000))
     : r.durationMin;
   state.focus.categories[r.category].sessions.push({id:uid(), date:todayISO(), minutes});
+  if(!early && r.notify){
+    const cat = FOCUS_CATS.find(c => c.id === r.category);
+    notifyFocusDone(cat ? cat.label : "Sesión", minutes);
+  }
   state.focus.running = null;
   persist();
   openSection("focus");
@@ -1626,8 +1645,16 @@ function renderFocusCategorySub(root, id){
     const durationSelect = el("select",{}, FOCUS_DURATIONS.map(m => el("option",{value:String(m)},[document.createTextNode(m + " min")])));
     durationSelect.value = "25";
     timerCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Duración")]),durationSelect]));
+    const notifyInput = el("input",{type:"checkbox"}); notifyInput.checked = true;
+    timerCard.appendChild(el("div",{class:"row"},[
+      el("label",{style:"display:flex;align-items:center;gap:10px;margin:0;"},[
+        el("span",{class:"switch"},[notifyInput, el("span",{class:"slider"})]),
+        document.createTextNode("Notificarme cuando termine")
+      ])
+    ]));
     timerCard.appendChild(el("button",{class:"btn", style:"width:100%;", onclick:() => {
-      state.focus.running = {category:id, startedAt:Date.now(), durationMin:parseInt(durationSelect.value,10)};
+      if(notifyInput.checked) requestNotifPermission();
+      state.focus.running = {category:id, startedAt:Date.now(), durationMin:parseInt(durationSelect.value,10), notify:notifyInput.checked};
       persist();
       openSection("focus");
     }},[document.createTextNode("Empezar cuenta atrás")]));
