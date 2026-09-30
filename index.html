@@ -162,6 +162,10 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .mandala-box .mandala-title{font-weight:700;font-size:12px;line-height:1.2;word-break:break-word;}
 .mandala-box .mandala-empty{opacity:0.5;font-size:24px;}
 .mandala-box.done{background:var(--money-pos);color:#04140f;border-color:var(--money-pos);}
+.mandala-box.center{background:transparent;border:1px dashed var(--border);cursor:pointer;}
+.mandala-box.center:active{transform:scale(0.97);filter:none;}
+.mandala-box.center .mandala-title{font-size:11px;opacity:0.95;}
+.mandala-box.center .mandala-tag{font-size:9px;letter-spacing:0.06em;text-transform:uppercase;opacity:0.55;font-weight:700;}
 .mandala-progress-track{width:100%;height:5px;border-radius:4px;background:rgba(127,127,127,0.3);overflow:hidden;margin-top:2px;}
 .mandala-box.done .mandala-progress-track{background:rgba(4,20,15,0.25);}
 .mandala-progress-fill{height:100%;background:var(--money-pos);}
@@ -393,7 +397,7 @@ const SECTIONS = [
   {id:"finanzas", icon:"💶", img:"icons/section-finanzas.png", label:"Finanzas", sub:"Ingresos y gastos", accent:"#5ee68f"},
   {id:"sueno", icon:"😴", label:"Sueño", sub:"Horas y calidad", accent:"#ff8fd6"},
   {id:"estadisticas", icon:"📈", label:"Estadísticas generales", sub:"Resumen de todo", accent:"#6bd6ff"},
-  {id:"objetivos", icon:"🏆", label:"Objetivos", sub:"Tablero 9×9", accent:"#f5c542"}
+  {id:"objetivos", icon:"🏆", label:"Objetivos", sub:"Mandala Chart", accent:"#f5c542"}
 ];
 const PERFIL_SECTION = {id:"perfil", icon:"🧍", label:"Perfil", sub:"Datos y peso", accent:"#5ee6c8"};
 
@@ -410,7 +414,7 @@ function defaultState(){
     finanzas:{transactions:[]},
     perfil:{name:"", height:null, age:null, weights:[], photo:null, palette:"coral"},
     sueno:{logs:[], settings:{idealBed:"00:00", idealWake:"07:30"}},
-    objetivos:{passwordHash:null, cells:[]}
+    objetivos:{passwordHash:null, mainGoal:"", groups:[]}
   };
 }
 let state = safeGet(STATE_KEY, null);
@@ -3021,18 +3025,24 @@ function renderSueno(root){
 }
 
 function ensureObjetivosShape(){
-  if(!state.objetivos) state.objetivos = {passwordHash:null, groups:[]};
+  if(!state.objetivos) state.objetivos = {passwordHash:null, mainGoal:"", groups:[]};
   if(state.objetivos.passwordHash === undefined) state.objetivos.passwordHash = null;
-  if(!Array.isArray(state.objetivos.groups) || state.objetivos.groups.length !== 9){
+  if(state.objetivos.mainGoal === undefined) state.objetivos.mainGoal = "";
+  if(!Array.isArray(state.objetivos.groups) || state.objetivos.groups.length !== 8){
+    // Migrar desde la forma anterior: 9 grupos de 9 (o, más atrás, una rejilla plana de 81 celdas).
+    const oldGroups = Array.isArray(state.objetivos.groups) ? state.objetivos.groups : null;
     const oldCells = Array.isArray(state.objetivos.cells) ? state.objetivos.cells : null;
     const groups = [];
-    for(let g=0; g<9; g++){
+    for(let g=0; g<8; g++){
       const items = [];
-      for(let i=0;i<9;i++){
-        const old = oldCells ? oldCells[g*9+i] : null;
+      const oldGroup = oldGroups ? oldGroups[g] : null;
+      for(let i=0;i<8;i++){
+        let old = null;
+        if(oldGroup && Array.isArray(oldGroup.items)) old = oldGroup.items[i];
+        else if(oldCells) old = oldCells[g*9+i];
         items.push(old ? {text:old.text||"", done:!!old.done} : {text:"", done:false});
       }
-      groups.push({title:"", items});
+      groups.push({title:(oldGroup && oldGroup.title) || "", items});
     }
     state.objetivos.groups = groups;
     delete state.objetivos.cells;
@@ -3041,7 +3051,46 @@ function ensureObjetivosShape(){
 
 function objetivoGroupPct(group){
   const done = group.items.filter(i => i.done).length;
-  return Math.round((done/9)*100);
+  return Math.round((done/8)*100);
+}
+
+// Coloca 1 celda central (no interactiva) rodeada de 8 celdas reales en el
+// orden visual correcto de una rejilla 3x3: [0,1,2,3,CENTRO,5,6,7,8].
+function renderMandalaGrid(centerEl, outerEls){
+  const grid = el("div",{class:"mandala-grid"});
+  grid.appendChild(outerEls[0]);
+  grid.appendChild(outerEls[1]);
+  grid.appendChild(outerEls[2]);
+  grid.appendChild(outerEls[3]);
+  grid.appendChild(centerEl);
+  grid.appendChild(outerEls[4]);
+  grid.appendChild(outerEls[5]);
+  grid.appendChild(outerEls[6]);
+  grid.appendChild(outerEls[7]);
+  return grid;
+}
+
+function openMainGoalModal(){
+  const overlay = el("div",{class:"modal-overlay"});
+  const textInput = el("textarea",{placeholder:"Objetivo principal"});
+  textInput.value = state.objetivos.mainGoal || "";
+  const sheet = el("div",{class:"modal-sheet"},[
+    el("h2",{},[document.createTextNode("Objetivo principal")]),
+    el("p",{style:"margin:0 0 4px;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Es la recopilación de los 8 objetivos de alrededor. No se marca como cumplido ni se despliega.")]),
+    el("div",{class:"field"},[el("label",{},[document.createTextNode("Texto")]),textInput]),
+    el("div",{class:"row", style:"gap:10px;"},[
+      el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
+      el("button",{class:"btn", style:"flex:1;", onclick:() => {
+        state.objetivos.mainGoal = textInput.value.trim();
+        persist();
+        overlay.remove();
+        openSection("objetivos");
+      }},[document.createTextNode("Guardar")])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function openObjetivoTitleModal(groupIdx){
@@ -3051,6 +3100,7 @@ function openObjetivoTitleModal(groupIdx){
   textInput.value = group.title || "";
   const sheet = el("div",{class:"modal-sheet"},[
     el("h2",{},[document.createTextNode("Título del grupo")]),
+    el("p",{style:"margin:0 0 4px;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Es la celda central de este grupo: recopila sus 8 objetivos y no se marca como cumplida.")]),
     el("div",{class:"field"},[el("label",{},[document.createTextNode("Título")]),textInput]),
     el("div",{class:"row", style:"gap:10px;"},[
       el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
@@ -3115,11 +3165,20 @@ function renderObjetivos(root){
   root.appendChild(sectionHeader("Objetivos"));
 
   if(objetivosOpenGroup === null){
-    root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Tablero de 9 grupos, cada uno con 9 objetivos dentro (81 en total). Toca un cuadro para entrar en él y ver sus 9 objetivos. Todos empiezan en tono apagado y se ponen en verde al completarse.")]));
+    root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Mandala Chart: el cuadro central es tu objetivo principal (no se despliega, es la recopilación de los 8 de alrededor). Toca uno de los 8 cuadros para entrar en él y ver sus 8 objetivos. Todos empiezan en tono apagado y se ponen en verde al completarse.")]));
     root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { objetivosEditMode = !objetivosEditMode; openSection("objetivos"); }},[document.createTextNode(objetivosEditMode ? "✓ Salir del modo edición" : "✏️ Editar títulos")]));
 
-    const grid = el("div",{class:"mandala-grid"});
-    state.objetivos.groups.forEach((group, idx) => {
+    const totalDone = state.objetivos.groups.reduce((a,g) => a + g.items.filter(i=>i.done).length, 0);
+    const avgPct = Math.round(state.objetivos.groups.reduce((a,g) => a + objetivoGroupPct(g), 0) / 8);
+
+    const centerContent = [el("div",{class:"mandala-tag"},[document.createTextNode("Objetivo principal")])];
+    centerContent.push(state.objetivos.mainGoal
+      ? el("div",{class:"mandala-title"},[document.createTextNode(state.objetivos.mainGoal)])
+      : el("div",{class:"mandala-empty"},[document.createTextNode("+")]));
+    centerContent.push(el("div",{class:"mandala-pct"},[document.createTextNode(avgPct + "%")]));
+    const centerEl = el("button",{class:"mandala-box center", onclick:() => openMainGoalModal()},centerContent);
+
+    const outerEls = state.objetivos.groups.map((group, idx) => {
       const pct = objetivoGroupPct(group);
       const classes = ["mandala-box"];
       if(pct === 100) classes.push("done");
@@ -3131,21 +3190,21 @@ function renderObjetivos(root){
       }
       content.push(el("div",{class:"mandala-pct"},[document.createTextNode(pct + "%")]));
       content.push(objetivoProgressBox(pct));
-      grid.appendChild(el("button",{class:classes.join(" "), onclick:() => {
+      return el("button",{class:classes.join(" "), onclick:() => {
         if(objetivosEditMode){
           openObjetivoTitleModal(idx);
         } else {
           objetivosOpenGroup = idx;
           openSection("objetivos");
         }
-      }},content));
+      }},content);
     });
-    root.appendChild(el("div",{class:"card"},[grid]));
 
-    const totalDone = state.objetivos.groups.reduce((a,g) => a + g.items.filter(i=>i.done).length, 0);
+    root.appendChild(el("div",{class:"card"},[renderMandalaGrid(centerEl, outerEls)]));
+
     const totalFilled = state.objetivos.groups.reduce((a,g) => a + g.items.filter(i=>i.text).length, 0);
     root.appendChild(el("div",{class:"card"},[
-      el("div",{class:"row"},[document.createTextNode("Objetivos escritos"), el("strong",{},[document.createTextNode(totalFilled + " / 81")])]),
+      el("div",{class:"row"},[document.createTextNode("Objetivos escritos"), el("strong",{},[document.createTextNode(totalFilled + " / 64")])]),
       el("div",{class:"row"},[document.createTextNode("Cumplidos"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(String(totalDone))])])
     ]));
     return;
@@ -3158,14 +3217,23 @@ function renderObjetivos(root){
   ]));
   root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { objetivosEditMode = !objetivosEditMode; openSection("objetivos"); }},[document.createTextNode(objetivosEditMode ? "✓ Salir del modo edición" : "✏️ Editar objetivos")]));
 
-  const subGrid = el("div",{class:"mandala-grid"});
-  group.items.forEach((item, itemIdx) => {
+  const doneCount = group.items.filter(i => i.done).length;
+  const groupPct = objetivoGroupPct(group);
+
+  const subCenterContent = [el("div",{class:"mandala-tag"},[document.createTextNode("Recopilación")])];
+  subCenterContent.push(group.title
+    ? el("div",{class:"mandala-title"},[document.createTextNode(group.title)])
+    : el("div",{class:"mandala-empty"},[document.createTextNode("+")]));
+  subCenterContent.push(el("div",{class:"mandala-pct"},[document.createTextNode(groupPct + "%")]));
+  const subCenterEl = el("button",{class:"mandala-box center", onclick:() => openObjetivoTitleModal(objetivosOpenGroup)},subCenterContent);
+
+  const subOuterEls = group.items.map((item, itemIdx) => {
     const classes = ["mandala-box"];
     if(item.done) classes.push("done");
     const content = item.text
       ? [el("div",{class:"mandala-title"},[document.createTextNode(item.text)])]
       : [el("div",{class:"mandala-empty"},[document.createTextNode("+")])];
-    subGrid.appendChild(el("button",{class:classes.join(" "), onclick:() => {
+    return el("button",{class:classes.join(" "), onclick:() => {
       if(!item.text || objetivosEditMode){
         openObjetivoItemModal(objetivosOpenGroup, itemIdx);
       } else {
@@ -3173,13 +3241,13 @@ function renderObjetivos(root){
         persist();
         openSection("objetivos");
       }
-    }},content));
+    }},content);
   });
-  root.appendChild(el("div",{class:"card"},[subGrid]));
 
-  const doneCount = group.items.filter(i => i.done).length;
+  root.appendChild(el("div",{class:"card"},[renderMandalaGrid(subCenterEl, subOuterEls)]));
+
   root.appendChild(el("div",{class:"card"},[
-    el("div",{class:"row"},[document.createTextNode("Cumplidos en este grupo"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(doneCount + " / 9")])])
+    el("div",{class:"row"},[document.createTextNode("Cumplidos en este grupo"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(doneCount + " / 8")])])
   ]));
 }
 
