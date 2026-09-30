@@ -150,6 +150,17 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .day-chip .day-chip-num{font-size:10px;font-weight:600;opacity:0.85;}
 .day-chip.done{background:var(--accent);color:#04140f;border-color:var(--accent);}
 .day-chip.today{box-shadow:0 0 0 2px var(--accent) inset;}
+.day-chip.selected{outline:2px solid var(--text);outline-offset:2px;}
+.goals-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;}
+.goal-cell{
+  aspect-ratio:1;border-radius:6px;background:var(--bg-elev);border:1px solid var(--border);
+  color:var(--text);font-size:8px;line-height:1.15;padding:2px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  transition:transform .1s ease, filter .1s ease;word-break:break-word;
+}
+.goal-cell:active{transform:scale(0.9);}
+.goal-cell.empty{color:var(--text-dim);opacity:0.55;font-size:15px;}
+.goal-cell.done{background:var(--money-pos);color:#04140f;border-color:var(--money-pos);font-weight:700;}
 .day-chip:active{transform:scale(0.88);filter:brightness(0.9);}
 .empty-msg{color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0;}
 
@@ -374,7 +385,9 @@ const SECTIONS = [
   {id:"proyectos", icon:"💡", label:"Proyectos", sub:"Ideas y trabajo", accent:"#6bd6ff"},
   {id:"recordatorios", icon:"🔔", label:"Recordatorios", sub:"Para más tarde", accent:"#ff6b6b"},
   {id:"finanzas", icon:"💶", img:"icons/section-finanzas.png", label:"Finanzas", sub:"Ingresos y gastos", accent:"#5ee68f"},
-  {id:"sueno", icon:"😴", label:"Sueño", sub:"Horas y calidad", accent:"#ff8fd6"}
+  {id:"sueno", icon:"😴", label:"Sueño", sub:"Horas y calidad", accent:"#ff8fd6"},
+  {id:"estadisticas", icon:"📈", label:"Estadísticas generales", sub:"Resumen de todo", accent:"#6bd6ff"},
+  {id:"objetivos", icon:"🏆", label:"Objetivos", sub:"Tablero 9×9", accent:"#f5c542"}
 ];
 const PERFIL_SECTION = {id:"perfil", icon:"🧍", label:"Perfil", sub:"Datos y peso", accent:"#5ee6c8"};
 
@@ -383,14 +396,15 @@ function defaultState(){
   return {
     calendar:{events:[]},
     sport:{weeks:{}, futbol:{entries:[]}, estiramientos:{streak:0, lastDate:null, entries:[]}, caminar:{entries:[]}, correr:{entries:[]}},
-    privado:{sessions:[]},
+    privado:{sessions:[], passwordHash:null},
     focus:{running:null, categories:{proyectos:{sessions:[]}, busqueda:{sessions:[]}, estudio:{sessions:[]}}},
     diario:{entries:[]},
     proyectos:{items:[]},
     recordatorios:{items:[]},
     finanzas:{transactions:[]},
     perfil:{name:"", height:null, age:null, weights:[], photo:null, palette:"coral"},
-    sueno:{logs:[], settings:{idealBed:"00:00", idealWake:"07:30"}}
+    sueno:{logs:[], settings:{idealBed:"00:00", idealWake:"07:30"}},
+    objetivos:{passwordHash:null, cells:[]}
   };
 }
 let state = safeGet(STATE_KEY, null);
@@ -635,6 +649,65 @@ function confirmDeleteGeneric(title, message, onConfirm){
   document.body.appendChild(overlay);
 }
 
+async function sha256Hex(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+let privadoUnlocked = false;
+let objetivosUnlocked = false;
+
+function renderPasswordGate(root, stateKey, sectionLabel, unlockedGetter, unlockedSetter){
+  if(unlockedGetter()) return true;
+  const rec = state[stateKey];
+  root.appendChild(sectionHeader(sectionLabel));
+  const card = el("div",{class:"card"});
+  const errorEl = el("p",{style:"margin:0;color:var(--danger);font-size:13px;"},[]);
+  const pwInput = el("input",{type:"password", placeholder:"Contraseña"});
+  if(!rec.passwordHash){
+    card.appendChild(el("h3",{},[document.createTextNode("Crea una contraseña")]));
+    card.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Esta sección quedará protegida. Elige una contraseña alfanumérica; te la pedirá cada vez que entres aquí (una vez desbloqueada, se queda abierta hasta que cierres la app).")]));
+    const pwConfirm = el("input",{type:"password", placeholder:"Repite la contraseña"});
+    card.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Contraseña")]),pwInput]));
+    card.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Repite la contraseña")]),pwConfirm]));
+    card.appendChild(errorEl);
+    card.appendChild(el("button",{class:"btn", style:"width:100%;", onclick: async () => {
+      if(!pwInput.value || pwInput.value.length < 4){ errorEl.textContent = "Usa al menos 4 caracteres."; return; }
+      if(pwInput.value !== pwConfirm.value){ errorEl.textContent = "Las contraseñas no coinciden."; return; }
+      rec.passwordHash = await sha256Hex(pwInput.value);
+      persist();
+      unlockedSetter(true);
+      openSection(stateKey);
+    }},[document.createTextNode("Guardar y entrar")]));
+  } else {
+    card.appendChild(el("h3",{},[document.createTextNode("Sección protegida")]));
+    card.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Contraseña")]),pwInput]));
+    card.appendChild(errorEl);
+    const submit = async () => {
+      const h = await sha256Hex(pwInput.value);
+      if(h === rec.passwordHash){
+        unlockedSetter(true);
+        openSection(stateKey);
+      } else {
+        errorEl.textContent = "Contraseña incorrecta.";
+        pwInput.value = "";
+      }
+    };
+    pwInput.addEventListener("keydown", (e) => { if(e.key === "Enter") submit(); });
+    card.appendChild(el("button",{class:"btn", style:"width:100%;", onclick: submit},[document.createTextNode("Entrar")]));
+    card.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => {
+      confirmDeleteGeneric("¿Olvidaste la contraseña?", "Se borrará la contraseña actual y tendrás que crear una nueva. Tus datos guardados no se pierden.", () => {
+        rec.passwordHash = null;
+        persist();
+        openSection(stateKey);
+      });
+    }},[document.createTextNode("He olvidado mi contraseña")]));
+  }
+  root.appendChild(card);
+  return false;
+}
+
 function deltaPill(diff, unitLabel){
   if(diff === 0) return el("span",{class:"pill"},[document.createTextNode("= igual")]);
   const up = diff > 0;
@@ -689,7 +762,18 @@ function renderAvatar(){
 }
 avatarBtn.addEventListener("click", () => openSection("perfil"));
 
+function checkAndFinalizeFocusIfElapsed(){
+  const r = state.focus.running;
+  if(!r) return;
+  const totalSecs = r.durationMin*60;
+  const elapsed = Math.floor((Date.now()-r.startedAt)/1000);
+  if(elapsed >= totalSecs){
+    finishFocusSession(false);
+  }
+}
+
 function openSection(id){
+  checkAndFinalizeFocusIfElapsed();
   viewHome.classList.add("hidden");
   viewSection.classList.remove("hidden");
   backBtn.classList.remove("hidden");
@@ -708,6 +792,7 @@ function goHome(){
   if(typeof estiramientosWeekOffset !== "undefined") estiramientosWeekOffset = 0;
   if(typeof focusSubView !== "undefined") focusSubView = null;
   if(typeof suenoEditingDate !== "undefined") suenoEditingDate = null;
+  if(typeof privadoSelectedDate !== "undefined") privadoSelectedDate = null;
   if(typeof perfilEditingWeight !== "undefined") perfilEditingWeight = null;
   topbarTitle.classList.remove("hidden");
   avatarBtn.classList.remove("hidden");
@@ -1438,68 +1523,123 @@ function renderEstadisticasSub(root){
 }
 
 let privadoStatsOpen = {};
+let privadoWeeksOpen = {};
+let privadoSelectedDate = null;
 
-function renderPrivado(root){
-  root.appendChild(sectionHeader("Seguimiento privado"));
+function ensurePrivadoShape(){
+  if(!state.privado.sessions) state.privado.sessions = [];
+  if(state.privado.passwordHash === undefined) state.privado.passwordHash = null;
+}
 
-  const formCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Nueva sesión")])]);
-  const dateInput = el("input",{type:"date"}); dateInput.value = todayISO();
-  const durInput = el("input",{type:"number", min:"0", placeholder:"Duración en minutos"});
-  const notesInput = el("textarea",{placeholder:"Notas (opcional)"});
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Fecha")]),dateInput]));
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Duración (minutos)")]),durInput]));
-  formCard.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Notas")]),notesInput]));
-  formCard.appendChild(el("button",{class:"btn", onclick:() => {
-    const mins = parseInt(durInput.value,10);
+function privadoEntryForDate(d){
+  return state.privado.sessions.find(s => s.date === d) || null;
+}
+
+function renderPrivadoDayForm(d){
+  const entry = privadoEntryForDate(d);
+  const wrap = el("div",{style:"margin-top:10px;display:flex;flex-direction:column;gap:8px;"});
+  wrap.appendChild(el("div",{class:"meta"},[document.createTextNode(capitalize(fmtDate(d)))]));
+  const minInput = el("input",{type:"number", min:"0", placeholder:"Minutos acumulados"});
+  if(entry) minInput.value = String(entry.minutes);
+  const notesInput = el("textarea",{placeholder:"Notas, sentimientos, avances (opcional)"});
+  if(entry) notesInput.value = entry.notes || "";
+  wrap.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Tiempo acumulado (min)")]),minInput]));
+  wrap.appendChild(el("div",{class:"field"},[el("label",{},[document.createTextNode("Notas / sentimientos / avances")]),notesInput]));
+  const btnRow = el("div",{class:"row", style:"gap:10px;"});
+  btnRow.appendChild(el("button",{class:"btn", style:"flex:1;", onclick:() => {
+    const mins = parseInt(minInput.value,10);
     if(!mins || mins <= 0) return;
-    state.privado.sessions.push({id:uid(), date:dateInput.value, minutes:mins, notes:notesInput.value.trim()});
+    const idx = state.privado.sessions.findIndex(s => s.date === d);
+    const data = {id: entry ? entry.id : uid(), date:d, minutes:mins, notes:notesInput.value.trim()};
+    if(idx >= 0) state.privado.sessions[idx] = data; else state.privado.sessions.push(data);
     persist();
     openSection("privado");
-  }},[document.createTextNode("Guardar sesión")]));
-  root.appendChild(formCard);
+  }},[document.createTextNode(entry ? "Actualizar" : "Guardar")]));
+  if(entry){
+    btnRow.appendChild(el("button",{class:"btn danger", style:"flex:1;", onclick:() => {
+      confirmDeleteGeneric("¿Eliminar sesión?", "La sesión del " + fmtDate(d) + " se eliminará permanentemente.", () => {
+        state.privado.sessions = state.privado.sessions.filter(s => s.date !== d);
+        privadoSelectedDate = null;
+        persist(); openSection("privado");
+      });
+    }},[document.createTextNode("Eliminar")]));
+  }
+  wrap.appendChild(btnRow);
+  return wrap;
+}
 
-  const sessions = state.privado.sessions.slice().sort((a,b) => b.date.localeCompare(a.date));
+function renderPrivadoWeekCard(weekNumber, dates){
+  const todayStr = todayISO();
+  const hasToday = dates.includes(todayStr);
+  return collapsibleCard("Semana " + weekNumber + " · " + shortDayMonth(dates[0]) + " – " + shortDayMonth(dates[6]), privadoWeeksOpen, dates[0], (body) => {
+    const labels = ["L","M","X","J","V","S","D"];
+    const chips = el("div",{class:"week-days"});
+    dates.forEach((d,i) => {
+      const entry = privadoEntryForDate(d);
+      const dayNum = parseInt(d.slice(8,10),10);
+      const classes = ["day-chip"];
+      if(entry) classes.push("done");
+      if(d === todayStr) classes.push("today");
+      if(d === privadoSelectedDate) classes.push("selected");
+      chips.appendChild(el("button",{class:classes.join(" "), onclick:() => {
+        privadoSelectedDate = (privadoSelectedDate === d) ? null : d;
+        openSection("privado");
+      }},[
+        document.createTextNode(labels[i]),
+        el("span",{class:"day-chip-num"},[document.createTextNode(String(dayNum))])
+      ]));
+    });
+    body.appendChild(chips);
+    if(privadoSelectedDate && dates.includes(privadoSelectedDate)){
+      body.appendChild(renderPrivadoDayForm(privadoSelectedDate));
+    }
+  }, "privado", hasToday);
+}
+
+function renderPrivado(root){
+  ensurePrivadoShape();
+  if(!renderPasswordGate(root, "privado", "Seguimiento privado", () => privadoUnlocked, (v) => { privadoUnlocked = v; })) return;
+
+  root.appendChild(sectionHeader("Seguimiento privado"));
+
+  const sessions = state.privado.sessions;
+  let firstWeekMonday;
+  if(sessions.length){
+    const minDate = sessions.reduce((a,s) => s.date < a ? s.date : a, sessions[0].date);
+    firstWeekMonday = weekDates(isoWeekKey(new Date(minDate+"T00:00:00")))[0];
+  } else {
+    firstWeekMonday = weekDates(isoWeekKey(new Date()))[0];
+  }
+  const currentWeekMonday = weekDates(isoWeekKey(new Date()))[0];
+
+  const weeks = [];
+  let cursor = new Date(firstWeekMonday+"T00:00:00");
+  let n = 1;
+  while(localISO(cursor) <= currentWeekMonday){
+    weeks.push({number:n, monday: localISO(cursor)});
+    cursor.setDate(cursor.getDate()+7);
+    n++;
+  }
+  weeks.reverse();
+
+  weeks.forEach(w => {
+    const dates = weekDates(isoWeekKey(new Date(w.monday+"T00:00:00")));
+    root.appendChild(renderPrivadoWeekCard(w.number, dates));
+  });
+
+  const sortedSessions = sessions.slice().sort((a,b) => b.date.localeCompare(a.date));
   root.appendChild(collapsibleCard("Estadísticas", privadoStatsOpen, "stats", (body) => {
-    if(sessions.length === 0){
+    if(sortedSessions.length === 0){
       body.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("Aún no hay sesiones registradas.")]));
       return;
     }
-    const total = sessions.length;
-    const avg = Math.round(sessions.reduce((a,s) => a+s.minutes,0)/total);
-    const best = Math.max(...sessions.map(s => s.minutes));
+    const total = sortedSessions.length;
+    const avg = Math.round(sortedSessions.reduce((a,s) => a+s.minutes,0)/total);
+    const best = Math.max(...sortedSessions.map(s => s.minutes));
     body.appendChild(el("div",{class:"row"},[document.createTextNode("Sesiones totales"), el("strong",{},[document.createTextNode(String(total))])]));
     body.appendChild(el("div",{class:"row"},[document.createTextNode("Duración media"), el("strong",{},[document.createTextNode(avg + " min")])]));
     body.appendChild(el("div",{class:"row"},[document.createTextNode("Mejor duración"), el("strong",{},[document.createTextNode(best + " min")])]));
   }, "privado"));
-
-  const listCard = el("div",{class:"card"},[el("h3",{},[document.createTextNode("Historial")])]);
-  const list = el("div",{class:"list"});
-  sessions.forEach((s,idx) => {
-    const prev = sessions[idx+1];
-    let diffLabel = "";
-    if(prev){
-      const diff = s.minutes - prev.minutes;
-      diffLabel = diff === 0 ? "= igual" : (diff > 0 ? ("▲ +" + diff + " min") : ("▼ " + diff + " min"));
-    }
-    list.appendChild(el("div",{class:"item"},[
-      el("div",{class:"top"},[
-        el("strong",{},[document.createTextNode(fmtDate(s.date))]),
-        el("span",{class:"icon-x", onclick:() => {
-          confirmDeleteGeneric("¿Eliminar sesión?", "La sesión del " + fmtDate(s.date) + " se eliminará permanentemente.", () => {
-            state.privado.sessions = state.privado.sessions.filter(x => x.id !== s.id);
-            persist(); openSection("privado");
-          });
-        }},[document.createTextNode("✕")])
-      ]),
-      el("div",{class:"meta"},[document.createTextNode(s.minutes + " min" + (diffLabel ? " · " + diffLabel : ""))]),
-      s.notes ? el("div",{class:"meta"},[document.createTextNode(s.notes)]) : null
-    ]));
-  });
-  if(sessions.length === 0){
-    list.appendChild(el("div",{class:"empty-msg"},[document.createTextNode("—")]));
-  }
-  listCard.appendChild(list);
-  root.appendChild(listCard);
 }
 
 let focusTicker = null;
@@ -1563,7 +1703,6 @@ function finishFocusSession(early){
   }
   state.focus.running = null;
   persist();
-  openSection("focus");
 }
 
 function focusSubHeader(title){
@@ -1620,7 +1759,7 @@ function renderFocusCategorySub(root, id){
   } else if(isThisRunning){
     const timerDisplay = el("div",{class:"focus-timer"},[document.createTextNode("00:00:00")]);
     timerCard.appendChild(timerDisplay);
-    timerCard.appendChild(el("button",{class:"btn danger", style:"width:100%;", onclick:() => finishFocusSession(true)},[document.createTextNode("Detener y guardar")]));
+    timerCard.appendChild(el("button",{class:"btn danger", style:"width:100%;", onclick:() => { finishFocusSession(true); openSection("focus"); }},[document.createTextNode("Detener y guardar")]));
     root.appendChild(timerCard);
 
     function tick(){
@@ -1632,6 +1771,7 @@ function renderFocusCategorySub(root, id){
       if(remaining <= 0){
         clearInterval(focusTicker);
         finishFocusSession(false);
+        openSection("focus");
         return;
       }
       const h = String(Math.floor(remaining/3600)).padStart(2,"0");
@@ -2872,6 +3012,149 @@ function renderSueno(root){
   root.appendChild(historyCard);
 }
 
+function ensureObjetivosShape(){
+  if(!state.objetivos) state.objetivos = {passwordHash:null, cells:[]};
+  if(state.objetivos.passwordHash === undefined) state.objetivos.passwordHash = null;
+  if(!Array.isArray(state.objetivos.cells) || state.objetivos.cells.length !== 81){
+    const old = Array.isArray(state.objetivos.cells) ? state.objetivos.cells : [];
+    const cells = [];
+    for(let i=0;i<81;i++) cells.push(old[i] || {text:"", done:false});
+    state.objetivos.cells = cells;
+  }
+}
+
+function openObjetivoCellModal(idx){
+  const cell = state.objetivos.cells[idx];
+  const overlay = el("div",{class:"modal-overlay"});
+  const textInput = el("textarea",{placeholder:"Objetivo"});
+  textInput.value = cell.text || "";
+  const sheet = el("div",{class:"modal-sheet"},[
+    el("h2",{},[document.createTextNode("Objetivo")]),
+    el("div",{class:"field"},[el("label",{},[document.createTextNode("Texto")]),textInput]),
+    el("div",{class:"row", style:"gap:10px;"},[
+      el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
+      el("button",{class:"btn", style:"flex:1;", onclick:() => {
+        cell.text = textInput.value.trim();
+        if(!cell.text) cell.done = false;
+        persist();
+        overlay.remove();
+        openSection("objetivos");
+      }},[document.createTextNode("Guardar")])
+    ])
+  ]);
+  if(cell.text){
+    sheet.appendChild(el("button",{class:"btn danger", style:"width:100%;", onclick:() => {
+      cell.text = ""; cell.done = false;
+      persist();
+      overlay.remove();
+      openSection("objetivos");
+    }},[document.createTextNode("Vaciar casilla")]));
+  }
+  overlay.appendChild(sheet);
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+let objetivosEditMode = false;
+
+function renderObjetivos(root){
+  ensureObjetivosShape();
+  if(!renderPasswordGate(root, "objetivos", "Objetivos", () => objetivosUnlocked, (v) => { objetivosUnlocked = v; })) return;
+
+  root.appendChild(sectionHeader("Objetivos"));
+  root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Tablero de 81 casillas (9×9). Toca una casilla vacía para escribir un objetivo. Con el texto ya puesto: en modo normal, tócala para marcarla cumplida (se pone en verde); en modo edición, tócala para cambiar o borrar el texto.")]));
+  root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { objetivosEditMode = !objetivosEditMode; openSection("objetivos"); }},[document.createTextNode(objetivosEditMode ? "✓ Salir del modo edición" : "✏️ Editar textos")]));
+
+  const grid = el("div",{class:"goals-grid"});
+  state.objetivos.cells.forEach((cell, idx) => {
+    const classes = ["goal-cell"];
+    if(cell.done) classes.push("done");
+    if(!cell.text) classes.push("empty");
+    grid.appendChild(el("button",{class:classes.join(" "), onclick:() => {
+      if(!cell.text || objetivosEditMode){
+        openObjetivoCellModal(idx);
+      } else {
+        cell.done = !cell.done;
+        persist();
+        openSection("objetivos");
+      }
+    }},[document.createTextNode(cell.text || "+")]));
+  });
+  root.appendChild(el("div",{class:"card"},[grid]));
+
+  const doneCount = state.objetivos.cells.filter(c => c.done).length;
+  const filledCount = state.objetivos.cells.filter(c => c.text).length;
+  root.appendChild(el("div",{class:"card"},[
+    el("div",{class:"row"},[document.createTextNode("Objetivos escritos"), el("strong",{},[document.createTextNode(filledCount + " / 81")])]),
+    el("div",{class:"row"},[document.createTextNode("Cumplidos"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(String(doneCount))])])
+  ]));
+}
+
+function renderEstadisticasGenerales(root){
+  root.appendChild(sectionHeader("Estadísticas generales"));
+  root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Resumen del mes actual en todas las secciones. Seguimiento privado y Objetivos quedan fuera de aquí por estar protegidas con contraseña.")]));
+
+  const todayStr = todayISO();
+  const curMonthKey = monthKey(todayStr);
+
+  ensureSportShape();
+  const doneSet = allDoneDatesSet();
+  const doneThisMonth = Array.from(doneSet).filter(d => monthKey(d) === curMonthKey).length;
+  const streak = computeStreakFromEntries(state.sport.estiramientos.entries);
+  const futbolThisMonth = state.sport.futbol.entries.filter(e => monthKey(e.date) === curMonthKey).length;
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("🏋️ Deporte")]),
+    el("div",{class:"row"},[document.createTextNode("Días activos este mes"), el("strong",{},[document.createTextNode(String(doneThisMonth))])]),
+    el("div",{class:"row"},[document.createTextNode("Racha de estiramientos"), el("strong",{},[document.createTextNode(streak + (streak===1?" día":" días"))])]),
+    el("div",{class:"row"},[document.createTextNode("Partidos de fútbol este mes"), el("strong",{},[document.createTextNode(String(futbolThisMonth))])])
+  ]));
+
+  ensureFocusShape();
+  const focusTotal = FOCUS_CATS.reduce((a,c) => a + state.focus.categories[c.id].sessions.filter(s => monthKey(s.date)===curMonthKey).reduce((x,s)=>x+s.minutes,0), 0);
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("⏱️ Focus")]),
+    el("div",{class:"row"},[document.createTextNode("Tiempo total este mes"), el("strong",{},[document.createTextNode(formatMinutes(focusTotal))])])
+  ]));
+
+  ensureSuenoShape();
+  const suenoThisMonth = state.sueno.logs.filter(l => monthKey(l.date)===curMonthKey);
+  const avgScore = suenoThisMonth.length ? (suenoThisMonth.reduce((a,l)=>a+(l.score||0),0)/suenoThisMonth.length) : null;
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("😴 Sueño")]),
+    el("div",{class:"row"},[document.createTextNode("Noches registradas este mes"), el("strong",{},[document.createTextNode(String(suenoThisMonth.length))])]),
+    el("div",{class:"row"},[document.createTextNode("Nota media"), el("strong",{},[document.createTextNode(avgScore!=null ? avgScore.toFixed(1)+"/10" : "—")])])
+  ]));
+
+  const txsThisMonth = state.finanzas.transactions.filter(t => monthKey(t.date)===curMonthKey);
+  const incomeMonth = txsThisMonth.filter(t=>t.type==="ingreso").reduce((a,t)=>a+t.amount,0);
+  const expenseMonth = txsThisMonth.filter(t=>t.type==="gasto").reduce((a,t)=>a+t.amount,0);
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("💶 Finanzas")]),
+    el("div",{class:"row"},[document.createTextNode("Ingresos este mes"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(incomeMonth.toFixed(2)+" €")])]),
+    el("div",{class:"row"},[document.createTextNode("Gastos este mes"), el("strong",{style:"color:var(--danger);"},[document.createTextNode(expenseMonth.toFixed(2)+" €")])]),
+    el("div",{class:"row"},[document.createTextNode("Balance"), el("strong",{},[document.createTextNode((incomeMonth-expenseMonth).toFixed(2)+" €")])])
+  ]));
+
+  const diarioThisMonth = state.diario.entries.filter(e => monthKey(e.date)===curMonthKey).length;
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("📓 Diario")]),
+    el("div",{class:"row"},[document.createTextNode("Entradas este mes"), el("strong",{},[document.createTextNode(String(diarioThisMonth))])])
+  ]));
+
+  const pendingCount = state.recordatorios.items.filter(r => !r.done).length;
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("🔔 Recordatorios")]),
+    el("div",{class:"row"},[document.createTextNode("Pendientes"), el("strong",{},[document.createTextNode(String(pendingCount))])])
+  ]));
+
+  const enMarcha = state.proyectos.items.filter(i => i.status === "en-marcha").length;
+  root.appendChild(el("div",{class:"card"},[
+    el("h3",{},[document.createTextNode("💡 Proyectos")]),
+    el("div",{class:"row"},[document.createTextNode("Ideas totales"), el("strong",{},[document.createTextNode(String(state.proyectos.items.length))])]),
+    el("div",{class:"row"},[document.createTextNode("En marcha"), el("strong",{},[document.createTextNode(String(enMarcha))])])
+  ]));
+}
+
 const RENDERERS = {
   calendario: renderCalendario,
   deporte: renderDeporte,
@@ -2882,7 +3165,9 @@ const RENDERERS = {
   recordatorios: renderRecordatorios,
   finanzas: renderFinanzas,
   perfil: renderPerfil,
-  sueno: renderSueno
+  sueno: renderSueno,
+  objetivos: renderObjetivos,
+  estadisticas: renderEstadisticasGenerales
 };
 
 const PIN_KEY = "vida_pin";
@@ -2996,6 +3281,7 @@ function maybeShowSleepPrompt(){
 function unlockApp(){
   pinScreen.classList.add("hidden");
   appRoot.classList.remove("hidden");
+  checkAndFinalizeFocusIfElapsed();
   renderHome();
   renderAvatar();
   maybeShowSleepPrompt();
