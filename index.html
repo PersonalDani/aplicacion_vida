@@ -151,16 +151,22 @@ label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;}
 .day-chip.done{background:var(--accent);color:#04140f;border-color:var(--accent);}
 .day-chip.today{box-shadow:0 0 0 2px var(--accent) inset;}
 .day-chip.selected{outline:2px solid var(--text);outline-offset:2px;}
-.goals-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;}
-.goal-cell{
-  aspect-ratio:1;border-radius:6px;background:var(--bg-elev);border:1px solid var(--border);
-  color:var(--text);font-size:8px;line-height:1.15;padding:2px;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  transition:transform .1s ease, filter .1s ease;word-break:break-word;
+.mandala-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.mandala-box{
+  border-radius:16px;padding:12px 8px;min-height:92px;border:1px solid var(--border);
+  background:var(--bg-elev);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  text-align:center;transition:transform .12s ease, filter .12s ease;overflow:hidden;
 }
-.goal-cell:active{transform:scale(0.9);}
-.goal-cell.empty{color:var(--text-dim);opacity:0.55;font-size:15px;}
-.goal-cell.done{background:var(--money-pos);color:#04140f;border-color:var(--money-pos);font-weight:700;}
+.mandala-box:active{transform:scale(0.93);filter:brightness(0.92);}
+.mandala-box .mandala-title{font-weight:700;font-size:12px;line-height:1.2;word-break:break-word;}
+.mandala-box .mandala-empty{opacity:0.5;font-size:24px;}
+.mandala-box.done{background:var(--money-pos);color:#04140f;border-color:var(--money-pos);}
+.mandala-progress-track{width:100%;height:5px;border-radius:4px;background:rgba(127,127,127,0.3);overflow:hidden;margin-top:2px;}
+.mandala-box.done .mandala-progress-track{background:rgba(4,20,15,0.25);}
+.mandala-progress-fill{height:100%;background:var(--money-pos);}
+.mandala-box.done .mandala-progress-fill{background:#04140f;}
+.mandala-pct{font-size:11px;font-weight:700;opacity:0.85;}
 .day-chip:active{transform:scale(0.88);filter:brightness(0.9);}
 .empty-msg{color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0;}
 
@@ -793,6 +799,8 @@ function goHome(){
   if(typeof focusSubView !== "undefined") focusSubView = null;
   if(typeof suenoEditingDate !== "undefined") suenoEditingDate = null;
   if(typeof privadoSelectedDate !== "undefined") privadoSelectedDate = null;
+  if(typeof objetivosOpenGroup !== "undefined") objetivosOpenGroup = null;
+  if(typeof objetivosEditMode !== "undefined") objetivosEditMode = false;
   if(typeof perfilEditingWeight !== "undefined") perfilEditingWeight = null;
   topbarTitle.classList.remove("hidden");
   avatarBtn.classList.remove("hidden");
@@ -3013,38 +3021,74 @@ function renderSueno(root){
 }
 
 function ensureObjetivosShape(){
-  if(!state.objetivos) state.objetivos = {passwordHash:null, cells:[]};
+  if(!state.objetivos) state.objetivos = {passwordHash:null, groups:[]};
   if(state.objetivos.passwordHash === undefined) state.objetivos.passwordHash = null;
-  if(!Array.isArray(state.objetivos.cells) || state.objetivos.cells.length !== 81){
-    const old = Array.isArray(state.objetivos.cells) ? state.objetivos.cells : [];
-    const cells = [];
-    for(let i=0;i<81;i++) cells.push(old[i] || {text:"", done:false});
-    state.objetivos.cells = cells;
+  if(!Array.isArray(state.objetivos.groups) || state.objetivos.groups.length !== 9){
+    const oldCells = Array.isArray(state.objetivos.cells) ? state.objetivos.cells : null;
+    const groups = [];
+    for(let g=0; g<9; g++){
+      const items = [];
+      for(let i=0;i<9;i++){
+        const old = oldCells ? oldCells[g*9+i] : null;
+        items.push(old ? {text:old.text||"", done:!!old.done} : {text:"", done:false});
+      }
+      groups.push({title:"", items});
+    }
+    state.objetivos.groups = groups;
+    delete state.objetivos.cells;
   }
 }
 
-function openObjetivoCellModal(idx){
-  const cell = state.objetivos.cells[idx];
+function objetivoGroupPct(group){
+  const done = group.items.filter(i => i.done).length;
+  return Math.round((done/9)*100);
+}
+
+function openObjetivoTitleModal(groupIdx){
+  const group = state.objetivos.groups[groupIdx];
   const overlay = el("div",{class:"modal-overlay"});
-  const textInput = el("textarea",{placeholder:"Objetivo"});
-  textInput.value = cell.text || "";
+  const textInput = el("input",{placeholder:"Título del grupo de objetivos"});
+  textInput.value = group.title || "";
   const sheet = el("div",{class:"modal-sheet"},[
-    el("h2",{},[document.createTextNode("Objetivo")]),
-    el("div",{class:"field"},[el("label",{},[document.createTextNode("Texto")]),textInput]),
+    el("h2",{},[document.createTextNode("Título del grupo")]),
+    el("div",{class:"field"},[el("label",{},[document.createTextNode("Título")]),textInput]),
     el("div",{class:"row", style:"gap:10px;"},[
       el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
       el("button",{class:"btn", style:"flex:1;", onclick:() => {
-        cell.text = textInput.value.trim();
-        if(!cell.text) cell.done = false;
+        group.title = textInput.value.trim();
         persist();
         overlay.remove();
         openSection("objetivos");
       }},[document.createTextNode("Guardar")])
     ])
   ]);
-  if(cell.text){
+  overlay.appendChild(sheet);
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function openObjetivoItemModal(groupIdx, itemIdx){
+  const item = state.objetivos.groups[groupIdx].items[itemIdx];
+  const overlay = el("div",{class:"modal-overlay"});
+  const textInput = el("textarea",{placeholder:"Objetivo"});
+  textInput.value = item.text || "";
+  const sheet = el("div",{class:"modal-sheet"},[
+    el("h2",{},[document.createTextNode("Objetivo")]),
+    el("div",{class:"field"},[el("label",{},[document.createTextNode("Texto")]),textInput]),
+    el("div",{class:"row", style:"gap:10px;"},[
+      el("button",{class:"btn secondary", style:"flex:1;", onclick:() => overlay.remove()},[document.createTextNode("Cancelar")]),
+      el("button",{class:"btn", style:"flex:1;", onclick:() => {
+        item.text = textInput.value.trim();
+        if(!item.text) item.done = false;
+        persist();
+        overlay.remove();
+        openSection("objetivos");
+      }},[document.createTextNode("Guardar")])
+    ])
+  ]);
+  if(item.text){
     sheet.appendChild(el("button",{class:"btn danger", style:"width:100%;", onclick:() => {
-      cell.text = ""; cell.done = false;
+      item.text = ""; item.done = false;
       persist();
       overlay.remove();
       openSection("objetivos");
@@ -3056,37 +3100,86 @@ function openObjetivoCellModal(idx){
 }
 
 let objetivosEditMode = false;
+let objetivosOpenGroup = null;
+
+function objetivoProgressBox(pct){
+  return el("div",{class:"mandala-progress-track"},[
+    el("div",{class:"mandala-progress-fill", style:`width:${pct}%;`})
+  ]);
+}
 
 function renderObjetivos(root){
   ensureObjetivosShape();
   if(!renderPasswordGate(root, "objetivos", "Objetivos", () => objetivosUnlocked, (v) => { objetivosUnlocked = v; })) return;
 
   root.appendChild(sectionHeader("Objetivos"));
-  root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Tablero de 81 casillas (9×9). Toca una casilla vacía para escribir un objetivo. Con el texto ya puesto: en modo normal, tócala para marcarla cumplida (se pone en verde); en modo edición, tócala para cambiar o borrar el texto.")]));
-  root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { objetivosEditMode = !objetivosEditMode; openSection("objetivos"); }},[document.createTextNode(objetivosEditMode ? "✓ Salir del modo edición" : "✏️ Editar textos")]));
 
-  const grid = el("div",{class:"goals-grid"});
-  state.objetivos.cells.forEach((cell, idx) => {
-    const classes = ["goal-cell"];
-    if(cell.done) classes.push("done");
-    if(!cell.text) classes.push("empty");
-    grid.appendChild(el("button",{class:classes.join(" "), onclick:() => {
-      if(!cell.text || objetivosEditMode){
-        openObjetivoCellModal(idx);
+  if(objetivosOpenGroup === null){
+    root.appendChild(el("p",{style:"margin:0;color:var(--text-dim);font-size:13px;"},[document.createTextNode("Tablero de 9 grupos, cada uno con 9 objetivos dentro (81 en total). Toca un cuadro para entrar en él y ver sus 9 objetivos. Todos empiezan en tono apagado y se ponen en verde al completarse.")]));
+    root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { objetivosEditMode = !objetivosEditMode; openSection("objetivos"); }},[document.createTextNode(objetivosEditMode ? "✓ Salir del modo edición" : "✏️ Editar títulos")]));
+
+    const grid = el("div",{class:"mandala-grid"});
+    state.objetivos.groups.forEach((group, idx) => {
+      const pct = objetivoGroupPct(group);
+      const classes = ["mandala-box"];
+      if(pct === 100) classes.push("done");
+      const content = [];
+      if(group.title){
+        content.push(el("div",{class:"mandala-title"},[document.createTextNode(group.title)]));
       } else {
-        cell.done = !cell.done;
+        content.push(el("div",{class:"mandala-empty"},[document.createTextNode("+")]));
+      }
+      content.push(el("div",{class:"mandala-pct"},[document.createTextNode(pct + "%")]));
+      content.push(objetivoProgressBox(pct));
+      grid.appendChild(el("button",{class:classes.join(" "), onclick:() => {
+        if(objetivosEditMode){
+          openObjetivoTitleModal(idx);
+        } else {
+          objetivosOpenGroup = idx;
+          openSection("objetivos");
+        }
+      }},content));
+    });
+    root.appendChild(el("div",{class:"card"},[grid]));
+
+    const totalDone = state.objetivos.groups.reduce((a,g) => a + g.items.filter(i=>i.done).length, 0);
+    const totalFilled = state.objetivos.groups.reduce((a,g) => a + g.items.filter(i=>i.text).length, 0);
+    root.appendChild(el("div",{class:"card"},[
+      el("div",{class:"row"},[document.createTextNode("Objetivos escritos"), el("strong",{},[document.createTextNode(totalFilled + " / 81")])]),
+      el("div",{class:"row"},[document.createTextNode("Cumplidos"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(String(totalDone))])])
+    ]));
+    return;
+  }
+
+  const group = state.objetivos.groups[objetivosOpenGroup];
+  root.appendChild(el("div",{style:"display:flex;align-items:center;gap:10px;"},[
+    el("button",{class:"back-btn", onclick:() => { objetivosOpenGroup = null; openSection("objetivos"); }},[document.createTextNode("‹")]),
+    el("h2",{style:"margin:0;font-size:18px;"},[document.createTextNode(group.title || "Grupo sin título")])
+  ]));
+  root.appendChild(el("button",{class:"btn secondary", style:"width:100%;", onclick:() => { objetivosEditMode = !objetivosEditMode; openSection("objetivos"); }},[document.createTextNode(objetivosEditMode ? "✓ Salir del modo edición" : "✏️ Editar objetivos")]));
+
+  const subGrid = el("div",{class:"mandala-grid"});
+  group.items.forEach((item, itemIdx) => {
+    const classes = ["mandala-box"];
+    if(item.done) classes.push("done");
+    const content = item.text
+      ? [el("div",{class:"mandala-title"},[document.createTextNode(item.text)])]
+      : [el("div",{class:"mandala-empty"},[document.createTextNode("+")])];
+    subGrid.appendChild(el("button",{class:classes.join(" "), onclick:() => {
+      if(!item.text || objetivosEditMode){
+        openObjetivoItemModal(objetivosOpenGroup, itemIdx);
+      } else {
+        item.done = !item.done;
         persist();
         openSection("objetivos");
       }
-    }},[document.createTextNode(cell.text || "+")]));
+    }},content));
   });
-  root.appendChild(el("div",{class:"card"},[grid]));
+  root.appendChild(el("div",{class:"card"},[subGrid]));
 
-  const doneCount = state.objetivos.cells.filter(c => c.done).length;
-  const filledCount = state.objetivos.cells.filter(c => c.text).length;
+  const doneCount = group.items.filter(i => i.done).length;
   root.appendChild(el("div",{class:"card"},[
-    el("div",{class:"row"},[document.createTextNode("Objetivos escritos"), el("strong",{},[document.createTextNode(filledCount + " / 81")])]),
-    el("div",{class:"row"},[document.createTextNode("Cumplidos"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(String(doneCount))])])
+    el("div",{class:"row"},[document.createTextNode("Cumplidos en este grupo"), el("strong",{style:"color:var(--money-pos);"},[document.createTextNode(doneCount + " / 9")])])
   ]));
 }
 
